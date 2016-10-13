@@ -1,5 +1,7 @@
 package com.cspire.prov.controller;
 
+import java.io.IOException;
+
 import javax.persistence.PersistenceException;
 import javax.servlet.http.HttpServletResponse;
 
@@ -19,18 +21,21 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.ResourceAccessException;
 
 import com.cspire.prov.framework.blackout.BlackoutService;
+import com.cspire.prov.framework.exceptions.InvalidConfig;
 import com.cspire.prov.framework.exceptions.InvalidRequest;
 import com.cspire.prov.framework.exceptions.ServerInternalError;
 import com.cspire.prov.framework.housekeeping.HouseKeepingErrorCodes;
 import com.cspire.prov.framework.housekeeping.HouseKeepingService;
 import com.cspire.prov.framework.housekeeping.HouseKeepingStatusCodes;
 import com.cspire.prov.framework.model.ProvMngrResponse;
+import com.cspire.prov.framework.model.RawXmlStringPayload;
 import com.cspire.prov.framework.model.mobi.MobiResponse;
 import com.cspire.prov.framework.model.mobi.MobitvReq;
 import com.cspire.prov.framework.utils.UtilFuncs;
 import com.cspire.prov.housekeeping.MobiHouseKeepingService;
 import com.cspire.prov.mobi.req.ProcessMobiRequest;
 import com.cspire.prov.mobi.req.ReqInfo;
+import com.cspire.prov.mobi.xml.req.OmniaPayloadAdaptor;
 
 
 @RestController
@@ -54,6 +59,20 @@ public class MobiProvController {
     @Autowired
     ProcessMobiRequest processMobiRequest;
 
+    @Autowired
+    OmniaPayloadAdaptor omniaPayloadAdaptor;
+    
+    @CrossOrigin
+    @RequestMapping(value = "/mobi/omnia", method = RequestMethod.POST)
+    @ResponseBody
+    public ProvMngrResponse mobiForOmniaProcessor(@RequestBody RawXmlStringPayload xmlRequest,HttpServletResponse resp) throws IOException {
+        if (blackoutService.checkForBalckout("rest/mobi/omnia")) {
+            return new ProvMngrResponse(utils.getCurrentEpoch(), ProvMngrResponse.BLACKOUT, null, null,
+                    ProvMngrResponse.FAIL_MSG, ProvMngrResponse.BLACKOUT_MSG, true);
+        }              
+        MobitvReq inputPayload=omniaPayloadAdaptor.omniaXmlToMobiReq(xmlRequest);        
+        return receiveReqAndSetLoginfo(inputPayload, false,inputPayload.getServiceRequestItemId(),resp);
+    }
     
     @CrossOrigin
     @RequestMapping(value = "/mobi", method = RequestMethod.POST)
@@ -152,7 +171,13 @@ public class MobiProvController {
             resp.setStatus(e.getStatusCode().value());
             return new  ProvMngrResponse(utils.getCurrentEpoch(), e.getStatusCode().value(), ProvMngrResponse.MOBI_PROCESSING_FAILED, utils.exceptionStackTrace(e), e.getMessage(), ProvMngrResponse.MOBI,
                     false) ;            
-        } catch (Exception e) {
+        }catch (InvalidConfig e) {
+           mobiHouseKeepingSer.houseKeepingUpdate(req, e,
+                    HouseKeepingErrorCodes.INTENAL_SERVER_ERROR, HouseKeepingStatusCodes.FAILED);
+           resp.setStatus(HttpStatus.BAD_REQUEST.value());           
+           return new  ProvMngrResponse(utils.getCurrentEpoch(), HttpStatus.BAD_REQUEST.value(), ProvMngrResponse.MOBI_PROCESSING_FAILED, utils.exceptionStackTrace(e), e.getMessage(), ProvMngrResponse.MOBI,
+                   false) ;
+        }catch (Exception e) {
             log.error("Processing failed with exception",  e);
             mobiHouseKeepingSer.houseKeepingUpdate(req, e,
                     HouseKeepingErrorCodes.INVALID_REQUEST_OR_CONFIG, HouseKeepingStatusCodes.FAILED);

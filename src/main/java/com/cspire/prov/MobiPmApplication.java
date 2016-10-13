@@ -2,12 +2,10 @@ package com.cspire.prov;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.web.util.UriComponentsBuilder;
 
 
 @SpringBootApplication(scanBasePackages={"com.cspire.prov","com.cspire.prov.framework"})
