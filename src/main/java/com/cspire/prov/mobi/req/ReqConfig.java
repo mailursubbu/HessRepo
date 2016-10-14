@@ -7,6 +7,8 @@ import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.WebApplicationContext;
 
+import com.cspire.prov.framework.rest.client.RestClient;
+
 @Configuration
 public class ReqConfig {
     @Scope(value=WebApplicationContext.SCOPE_REQUEST,proxyMode = ScopedProxyMode.TARGET_CLASS)
@@ -18,8 +20,9 @@ public class ReqConfig {
     
     @Bean
     public RestTemplate mobiRestTemplate() {
-        RestTemplate restTemplate = new RestTemplate();
-        return restTemplate;
+        return RestClient.getBufferedRestClient();
+        /*RestTemplate restTemplate = new RestTemplate();
+        return restTemplate;*/
     }
     
     @Bean

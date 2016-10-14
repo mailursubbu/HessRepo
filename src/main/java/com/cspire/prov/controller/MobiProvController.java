@@ -149,6 +149,7 @@ public class MobiProvController {
             log.debug("test");
             ResponseEntity<MobiResponse> response = processMobiRequest.processMobiRequest(req);
             if(response.getStatusCode()!=HttpStatus.OK){
+                resp.sendError(response.getStatusCode().value(),response.getBody().getMessage());
                 throw new InvalidRequest("Mobi provisioning failed");
             }
         } catch (ResourceAccessException e) {
