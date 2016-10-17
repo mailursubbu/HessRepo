@@ -156,8 +156,8 @@ public class MobiProvController {
         } catch (ResourceAccessException e) {
            mobiHouseKeepingSer.houseKeepingUpdate(req, e,
                     HouseKeepingErrorCodes.MOBI_DOWN, HouseKeepingStatusCodes.FAILED);
-           resp.setStatus(HttpStatus.SERVICE_UNAVAILABLE.value());           
-           return new  ProvMngrResponse(utils.getCurrentEpoch(), HttpStatus.SERVICE_UNAVAILABLE.value(), ProvMngrResponse.MOBI_PROCESSING_FAILED, utils.exceptionStackTrace(e), e.getMessage(), ProvMngrResponse.MOBI,
+           resp.setStatus(HttpStatus.NOT_FOUND.value());           
+           return new  ProvMngrResponse(utils.getCurrentEpoch(), HttpStatus.NOT_FOUND.value(), ProvMngrResponse.MOBI_PROCESSING_FAILED, utils.exceptionStackTrace(e), "Mobi Server is down", ProvMngrResponse.MOBI,
                    false) ;
         } catch (PersistenceException e) {
             log.error("Processing failed with exception",e);
