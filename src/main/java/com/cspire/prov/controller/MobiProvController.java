@@ -150,8 +150,9 @@ public class MobiProvController {
             ResponseEntity<MobiResponse> response = processMobiRequest.processMobiRequest(req);
             if(response.getStatusCode()!=HttpStatus.OK){
                 resp.sendError(response.getStatusCode().value(),response.getBody().getMessage());
-                throw new InvalidRequest("Mobi provisioning failed");
-            }
+                return new  ProvMngrResponse(utils.getCurrentEpoch(), response.getStatusCode().value(), response.getBody().getError(), null, response.getBody().getMessage(), ProvMngrResponse.MOBI,
+                        false) ; 
+                }
         } catch (ResourceAccessException e) {
            mobiHouseKeepingSer.houseKeepingUpdate(req, e,
                     HouseKeepingErrorCodes.MOBI_DOWN, HouseKeepingStatusCodes.FAILED);
