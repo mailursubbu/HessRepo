@@ -13,11 +13,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.ResourceAccessException;
 
 import com.cspire.prov.framework.blackout.BlackoutService;
@@ -71,39 +71,41 @@ public class MobiProvController {
                     ProvMngrResponse.FAIL_MSG, ProvMngrResponse.BLACKOUT_MSG, true);
         }              
         MobitvReq inputPayload=omniaPayloadAdaptor.omniaXmlToMobiReq(xmlRequest);        
-        return receiveReqAndSetLoginfo(inputPayload, false,inputPayload.getServiceRequestItemId(),resp);
+        return receiveReqAndSetLoginfo(inputPayload, false,inputPayload.getServiceRequestItemId(),resp,null);
     }
     
     @CrossOrigin
     @RequestMapping(value = "/mobi", method = RequestMethod.POST)
     @ResponseBody
-    public ProvMngrResponse mobiProvRequestProcessor(@RequestBody MobitvReq inputPayload,HttpServletResponse resp) {
+    public ProvMngrResponse mobiProvRequestProcessor(@RequestHeader("provId") Integer provId,@RequestBody MobitvReq inputPayload,HttpServletResponse resp) {
         // TODO: Implement the filter based blackout.
         if (blackoutService.checkForBalckout("rest/mobi")) {
             return new ProvMngrResponse(utils.getCurrentEpoch(), ProvMngrResponse.BLACKOUT, null, null,
                     ProvMngrResponse.FAIL_MSG, ProvMngrResponse.BLACKOUT_MSG, true);
         }
+        inputPayload.setIsValidationReq(false);
         // Try the readonly operations
-        return receiveReqAndSetLoginfo(inputPayload, false,inputPayload.getServiceRequestItemId(),resp);
+        return receiveReqAndSetLoginfo(inputPayload, false,inputPayload.getServiceRequestItemId(),resp,provId);
     }
 
 
     @CrossOrigin
     @RequestMapping(value = "/mobiSimulate", method = RequestMethod.POST)
     @ResponseBody
-    public ProvMngrResponse mobiProvRequestValidator(@RequestBody MobitvReq inputPayload,HttpServletResponse resp) {
+    public ProvMngrResponse mobiProvRequestValidator(@RequestHeader("provId") Integer provId,@RequestBody MobitvReq inputPayload,HttpServletResponse resp) {
         // TODO: Implement the filter based blackout.
         if (blackoutService.checkForBalckout("rest/mobiSimulate")) {
             return new ProvMngrResponse(utils.getCurrentEpoch(), ProvMngrResponse.BLACKOUT, null, null,
                     ProvMngrResponse.FAIL_MSG, ProvMngrResponse.BLACKOUT_MSG, true);
         }
 
+        inputPayload.setIsValidationReq(true);
         /*
          * Lets use orig req for all the read only txns with ApMax. maskedReq
          * would be used for all the write txns with ApMax. House Keeping would
          * be with orig request parameters.
          */
-        return receiveReqAndSetLoginfo(inputPayload, true,inputPayload.getServiceRequestItemId(),resp);
+        return receiveReqAndSetLoginfo(inputPayload, true,inputPayload.getServiceRequestItemId(),resp,provId);
     }
     
     private void validateServiceOrderItem(MobitvReq inputPayload){
@@ -114,12 +116,15 @@ public class MobiProvController {
         }
     }
     
-    private ProvMngrResponse receiveReqAndSetLoginfo(MobitvReq inputPayload, Boolean isValidateReq,Integer serviceRequestItemId,HttpServletResponse resp) {       
-        reqInfo.setIsValidationReq(isValidateReq);        
+    private ProvMngrResponse receiveReqAndSetLoginfo(MobitvReq inputPayload, Boolean isValidateReq,Integer serviceRequestItemId,HttpServletResponse resp,Integer provId) {       
+        reqInfo.setIsValidationReq(isValidateReq);
+        reqInfo.setProvId(provId);
+        
         this.populateLogginInfo(inputPayload);
                 
         log.info("Processing Started");
         this.validateServiceOrderItem(inputPayload);
+        
         try {
             return this.mobiProvisioner(inputPayload,resp);
         } finally {
@@ -146,49 +151,47 @@ public class MobiProvController {
 
     private ProvMngrResponse mobiProvisioner(MobitvReq req,HttpServletResponse resp) {
         try {
-            log.debug("test");
             ResponseEntity<MobiResponse> response = processMobiRequest.processMobiRequest(req);
             if(response.getStatusCode()!=HttpStatus.OK){
+                InvalidRequest invalidReq = new InvalidRequest("Request Processing Failed in Mobi. Status Code:"
+                                            +response.getStatusCode().value()+" Msg:"+response.getStatusCode().getReasonPhrase() +
+                                            " More info:"+response.getBody().getError() );
+                mobiHouseKeepingSer.houseKeepingUpdate(req, invalidReq,
+                        HouseKeepingErrorCodes.MOBI_PROCESSING_FAILED, 
+                        HouseKeepingStatusCodes.FAILED,reqInfo.getProvId());
                 resp.sendError(response.getStatusCode().value(),response.getBody().getMessage());
                 return new  ProvMngrResponse(utils.getCurrentEpoch(), response.getStatusCode().value(), response.getBody().getError(), null, response.getBody().getMessage(), ProvMngrResponse.MOBI,
                         false) ; 
                 }
         } catch (ResourceAccessException e) {
            mobiHouseKeepingSer.houseKeepingUpdate(req, e,
-                    HouseKeepingErrorCodes.MOBI_DOWN, HouseKeepingStatusCodes.FAILED);
+                    HouseKeepingErrorCodes.MOBI_DOWN, HouseKeepingStatusCodes.FAILED,reqInfo.getProvId());
            resp.setStatus(HttpStatus.NOT_FOUND.value());           
-           return new  ProvMngrResponse(utils.getCurrentEpoch(), HttpStatus.NOT_FOUND.value(), ProvMngrResponse.MOBI_PROCESSING_FAILED, utils.exceptionStackTrace(e), "Mobi Server is down", ProvMngrResponse.MOBI,
+           return new  ProvMngrResponse(utils.getCurrentEpoch(), HttpStatus.NOT_FOUND.value(), ProvMngrResponse.MOBI_PROCESSING_FAILED, utils.exceptionStackTrace(e), "Mobi PM- Mobi Server is down", ProvMngrResponse.MOBI,
                    false) ;
         } catch (PersistenceException e) {
             log.error("Processing failed with exception",e);
             mobiHouseKeepingSer.houseKeepingUpdate(req, e,
-                    HouseKeepingErrorCodes.DB_UPDATED_FAILED, HouseKeepingStatusCodes.FAILED);
+                    HouseKeepingErrorCodes.DB_UPDATED_FAILED, HouseKeepingStatusCodes.FAILED,reqInfo.getProvId());
             resp.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());           
-            return new  ProvMngrResponse(utils.getCurrentEpoch(), HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage(), utils.exceptionStackTrace(e), e.getMessage(), ProvMngrResponse.MOBI,
+            return new  ProvMngrResponse(utils.getCurrentEpoch(), HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage(), utils.exceptionStackTrace(e), "Mobi PM- PersistenceException:DB operation failed", ProvMngrResponse.MOBI,
                     false) ;
-        } catch (HttpClientErrorException e) {
-            log.error("Processing failed with exception", e);
-            mobiHouseKeepingSer.houseKeepingUpdate(req, e,
-                    HouseKeepingErrorCodes.MOBI_PROCESSING_FAILED, HouseKeepingStatusCodes.FAILED);            
-            resp.setStatus(e.getStatusCode().value());
-            return new  ProvMngrResponse(utils.getCurrentEpoch(), e.getStatusCode().value(), ProvMngrResponse.MOBI_PROCESSING_FAILED, utils.exceptionStackTrace(e), e.getMessage(), ProvMngrResponse.MOBI,
-                    false) ;            
-        }catch (InvalidConfig e) {
+        } catch (InvalidConfig e) {
            mobiHouseKeepingSer.houseKeepingUpdate(req, e,
-                    HouseKeepingErrorCodes.INTENAL_SERVER_ERROR, HouseKeepingStatusCodes.FAILED);
+                    HouseKeepingErrorCodes.INTENAL_SERVER_ERROR, HouseKeepingStatusCodes.FAILED,reqInfo.getProvId());
            resp.setStatus(HttpStatus.BAD_REQUEST.value());           
-           return new  ProvMngrResponse(utils.getCurrentEpoch(), HttpStatus.BAD_REQUEST.value(), ProvMngrResponse.MOBI_PROCESSING_FAILED, utils.exceptionStackTrace(e), e.getMessage(), ProvMngrResponse.MOBI,
+           return new  ProvMngrResponse(utils.getCurrentEpoch(), HttpStatus.BAD_REQUEST.value(), ProvMngrResponse.MOBI_PROCESSING_FAILED, utils.exceptionStackTrace(e), "Mobi PM-"+e.getMessage(), ProvMngrResponse.MOBI,
                    false) ;
         }catch (Exception e) {
             log.error("Processing failed with exception",  e);
             mobiHouseKeepingSer.houseKeepingUpdate(req, e,
-                    HouseKeepingErrorCodes.INVALID_REQUEST_OR_CONFIG, HouseKeepingStatusCodes.FAILED);
+                    HouseKeepingErrorCodes.INVALID_REQUEST_OR_CONFIG, HouseKeepingStatusCodes.FAILED,reqInfo.getProvId());
             String errorMsg = e.getMessage();
             if (errorMsg == null) {
                 errorMsg = "Exception doesn't have the error message. Please refer to the complete exception";
             }
             resp.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value()); 
-            return new  ProvMngrResponse(utils.getCurrentEpoch(), HttpStatus.INTERNAL_SERVER_ERROR.value(), errorMsg, utils.exceptionStackTrace(e), errorMsg, ProvMngrResponse.MOBI,
+            return new  ProvMngrResponse(utils.getCurrentEpoch(), HttpStatus.INTERNAL_SERVER_ERROR.value(), errorMsg, utils.exceptionStackTrace(e), "Mobi PM-"+errorMsg, ProvMngrResponse.MOBI,
                     false) ;           
         }        
         return new  ProvMngrResponse(utils.getCurrentEpoch(), HttpStatus.OK.value(), null, null, null, ProvMngrResponse.MOBI,

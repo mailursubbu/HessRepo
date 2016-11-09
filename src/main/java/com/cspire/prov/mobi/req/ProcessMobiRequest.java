@@ -51,7 +51,7 @@ public class ProcessMobiRequest {
             ResponseEntity<MobiResponse> response = mobiRestTemplate.exchange(
                     mobiEndpoint, HttpMethod.POST, entity,
                     MobiResponse.class,mobiOperator,mobiBillingSystem,
-                    req.getAccountNum().trim(),mobiPartner,System.currentTimeMillis()/1000L,"Signature");            
+                    req.getAccountNum().trim()+"-"+req.getLocationId().toString(),mobiPartner,System.currentTimeMillis()/1000L,"Signature");            
             return response;
     }
 

@@ -17,12 +17,13 @@ public class MobiHouseKeepingService {
     HouseKeepingService houseKeepingService;
     
     public Boolean houseKeepingUpdate(MobitvReq req,Throwable exception,HouseKeepingErrorCodes errorCode,
-            HouseKeepingStatusCodes statusCode){
+            HouseKeepingStatusCodes statusCode,Integer provId){
       
         Integer serviceRequestItemId = req.getServiceRequestItemId();
         HouseKeepingNetworkElements ne=HouseKeepingNetworkElements.MOBI;
-        if(req.getIsValidationReq()){
-            ne=HouseKeepingNetworkElements.APMAX_VALIDATION;
+        Boolean validationReq = req.getIsValidationReq();
+        if(validationReq !=null && validationReq){
+            ne=HouseKeepingNetworkElements.MOBI_VALIDATION;
         }
         
        Integer accountNum=null;       
@@ -41,7 +42,7 @@ public class MobiHouseKeepingService {
        
        try{
            houseKeepingService.newRequestEntry(accountNum,serviceOrder,type,ne,
-                   exception,errorCode.getErrorCode(),statusCode.getStatusCode(),serviceRequestItemId);
+                   exception,errorCode.getErrorCode(),statusCode.getStatusCode(),serviceRequestItemId,provId);
        }catch(Exception e){
            log.error("Housekeeping updated failed with exception",e);
            return false;

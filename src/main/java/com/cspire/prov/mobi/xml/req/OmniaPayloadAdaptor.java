@@ -65,7 +65,7 @@ public class OmniaPayloadAdaptor {
     private Purchase createMobiPurchase(FEATURE feature,WhatToDoWithComp action){
         Purchase purchase = new Purchase();
         purchase.setProduct_id(feature.getCOMPONENTCODE().trim());
-        purchase.setAction(action.name().trim());
+        purchase.setAction(action.name().trim().toLowerCase());
         return purchase;
     }
     
