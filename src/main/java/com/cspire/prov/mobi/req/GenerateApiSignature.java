@@ -3,12 +3,26 @@ package com.cspire.prov.mobi.req;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import com.cspire.prov.framework.exceptions.InvalidConfig;
+
+@Component
 public class GenerateApiSignature {
 
-    /*final protected static char[] hexArray = "0123456789ABCDEF".toCharArray();
+    private static final Logger log = LoggerFactory.getLogger(GenerateApiSignature.class);
+    final protected static char[] hexArray = "0123456789ABCDEF".toCharArray();
 
-    public static String bytesToHex(byte[] bytes) {
-
+    @Value("${mobi.path}")
+    private String mobiProvPath;
+    
+    @Value("${mobi.partner}")
+    private String mobiProvPartner;
+    
+    private String bytesToHex(byte[] bytes) {
         char[] hexChars = new char[bytes.length * 2];
         for (int j = 0; j < bytes.length; j++) {
             int v = bytes[j] & 0xFF;
@@ -18,23 +32,33 @@ public class GenerateApiSignature {
         return new String(hexChars);
     }
 
-    public static String generateSig(String mobiEndpoint,String PartnerId,long ts) {
+    private String generateSig(String mobiEndpoint, String PartnerId, long ts) {
         try {
             String secret = "secret_key";
-            String message = mobiEndpoint+":"+PartnerId+":"+ts;
+            String message = mobiEndpoint + ":" + PartnerId + ":" + ts;
             Mac sha256_HMAC = Mac.getInstance("HmacSHA256");
             SecretKeySpec secret_key = new SecretKeySpec(secret.getBytes(), "HmacSHA256");
             sha256_HMAC.init(secret_key);
             String hash = bytesToHex(sha256_HMAC.doFinal(message.getBytes()));
-            System.out.println(hash);
+            log.trace("Signature Generated:{}",hash);
             return hash;
         } catch (Exception e) {
-            System.out.println("Error");
+            log.error("Signature generation failed",e);
+            throw new InvalidConfig("Signature generation failed",e);
         }
-        return null;
     }
     
-    public static void main(String[] args){
-        GenerateApiSignature.generateSig("http://localhost:9010","123",766789);
-    }*/
+    public String generateSig(String exterrnalId) {
+        /*
+         * URI : /partner/v1/notification/purchase/{operator}/{billing_system}/exterrnal_id}/purchases 
+         * {operator} = cspire 
+         * {billing_system} = omnia
+         * {external_id} = 646259-86826 -- external_id would change based on the
+         * account being operated on.
+         * 
+         */
+        String mobiEndpoint = mobiProvPath.replace("{external_id}", exterrnalId);
+        long ts = System.currentTimeMillis() / 1000L;
+        return generateSig(mobiEndpoint, mobiProvPartner, ts);        
+    }
 }
