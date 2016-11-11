@@ -17,10 +17,13 @@ public class GenerateApiSignature {
     final protected static char[] hexArray = "0123456789ABCDEF".toCharArray();
 
     @Value("${mobi.path}")
-    private String mobiProvPath;
+    String mobiProvPath;
     
-    @Value("${mobi.partner}")
-    private String mobiProvPartner;
+    @Value("${mobi.partnerId}")
+    String mobiPartnerId;
+    
+    @Value("${mobi.secretKey}")
+    String mobiSecretKey;
     
     private String bytesToHex(byte[] bytes) {
         char[] hexChars = new char[bytes.length * 2];
@@ -32,12 +35,11 @@ public class GenerateApiSignature {
         return new String(hexChars);
     }
 
-    private String generateSig(String mobiEndpoint, String PartnerId, long ts) {
+    private String generateSig(String mobiEndpoint, long ts) {
         try {
-            String secret = "secret_key";
-            String message = mobiEndpoint + ":" + PartnerId + ":" + ts;
+            String message = mobiEndpoint + ":" + mobiPartnerId + ":" + ts;
             Mac sha256_HMAC = Mac.getInstance("HmacSHA256");
-            SecretKeySpec secret_key = new SecretKeySpec(secret.getBytes(), "HmacSHA256");
+            SecretKeySpec secret_key = new SecretKeySpec(mobiSecretKey.getBytes(), "HmacSHA256");
             sha256_HMAC.init(secret_key);
             String hash = bytesToHex(sha256_HMAC.doFinal(message.getBytes()));
             log.trace("Signature Generated:{}",hash);
@@ -58,7 +60,7 @@ public class GenerateApiSignature {
          * 
          */
         String mobiEndpoint = mobiProvPath.replace("{external_id}", exterrnalId);
-        long ts = System.currentTimeMillis() / 1000L;
-        return generateSig(mobiEndpoint, mobiProvPartner, ts);        
+        long ts = System.currentTimeMillis();
+        return generateSig(mobiEndpoint, ts);        
     }
 }

@@ -48,16 +48,15 @@ public class ProcessMobiRequest {
         Integer provId = reqInfo.getProvId();
         Integer servOrder = req.getServiceOrder();
         String verndorPurId = provId.toString()+"-"+servOrder.toString();
+        log.trace("verndorPurId:{}",verndorPurId);
         Purchase[] purchases = req.getPurchase();
         for(Purchase pur:purchases){
             pur.setVendor_purchase_id(verndorPurId);
         }
     }
-    //${mobi.server}/external/platform/v5/purchase/{operator}/{billing_system}/{external_id}/purchases/create.json?partner={partner}&ts={ts}&sig={sig}
     
     public MobiReqPayload generateMobiPayload(MobitvReq req) {
         MobiReqPayload mobiReq = new MobiReqPayload();
-        
         this.updateVerndorPurchaseId(req);
         mobiReq.setPurchase(req.getPurchase());
         
@@ -67,12 +66,11 @@ public class ProcessMobiRequest {
     public ResponseEntity<MobiResponse>  processMobiRequest(MobitvReq req) {       
             HttpEntity<Object> entity = prepareRpcEntity(req);
             String externalId = req.getAccountNum()+"-"+req.getLocationId().toString();
-            String sig = genApiSig.generateSig(externalId);
-            
+            String sig = genApiSig.generateSig(externalId);            
             ResponseEntity<MobiResponse> response = mobiRestTemplate.exchange(
                     mobiEndpoint, HttpMethod.POST, entity,
                     MobiResponse.class,mobiOperator,mobiBillingSystem,
-                    req.getAccountNum().trim()+"-"+req.getLocationId().toString(),mobiPartner,System.currentTimeMillis()/1000L,sig);            
+                    req.getAccountNum().trim()+"-"+req.getLocationId().toString(),mobiPartner,System.currentTimeMillis()/1000L,sig);    
             return response;
     }
 
