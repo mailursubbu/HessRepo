@@ -65,15 +65,24 @@ public class ProcessMobiRequest {
 
     public ResponseEntity<MobiResponse>  processMobiRequest(MobitvReq req) {       
             HttpEntity<Object> entity = prepareRpcEntity(req);
-            String externalId = req.getAccountNum()+"-"+req.getLocationId().toString();
+            String externalId = this.prepareExternalId(req);
             String sig = genApiSig.generateSig(externalId);            
             ResponseEntity<MobiResponse> response = mobiRestTemplate.exchange(
                     mobiEndpoint, HttpMethod.POST, entity,
                     MobiResponse.class,mobiOperator,mobiBillingSystem,
-                    req.getAccountNum().trim()+"-"+req.getLocationId().toString(),mobiPartner,System.currentTimeMillis()/1000L,sig);    
+                    prepareExternalId(req),mobiPartner,System.currentTimeMillis()/1000L,sig);    
             return response;
     }
 
+    private String prepareExternalId(MobitvReq req){
+        Long locId = req.getLocationId();
+        if(locId!=null){
+            return         req.getAccountNum().trim()+"-"+req.getLocationId().toString();
+        }else{
+            return req.getAccountNum().trim();
+        }
+    }
+    
     private HttpEntity<Object> prepareRpcEntity(MobitvReq req) {
         HttpHeaders headers = new HttpHeaders();
         headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));

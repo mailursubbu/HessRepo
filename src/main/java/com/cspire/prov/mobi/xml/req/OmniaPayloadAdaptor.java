@@ -25,8 +25,10 @@ public class OmniaPayloadAdaptor {
 
     @Autowired
     XmlReqToObjProcessor mobiPayloadProcessor;
-    
     public MobitvReq omniaXmlToMobiReq(RawXmlStringPayload xmlRequest) throws IOException{
+        return omniaXmlToMobiReq(xmlRequest, false);
+    }
+    public MobitvReq omniaXmlToMobiReq(RawXmlStringPayload xmlRequest,Boolean isSimulate) throws IOException{
         String xmlReq = xmlRequest.getXmlString();
         
         MobitvReq mobitvReq = new MobitvReq();
@@ -34,7 +36,7 @@ public class OmniaPayloadAdaptor {
         REQUEST req = (REQUEST) mobiPayloadProcessor.xmlStringToObject(xmlReq);
         mobitvReq.setAccountNum(req.getACCOUNT().getACCOUNTCODE().trim());
         mobitvReq.setServiceOrder(req.getSERVICEORDERNUMBER());
-        mobitvReq.setIsValidationReq(false);
+        mobitvReq.setIsValidationReq(isSimulate);
         mobitvReq.setPurchase(this.getIptvChannelList(req));
         return mobitvReq;        
     }

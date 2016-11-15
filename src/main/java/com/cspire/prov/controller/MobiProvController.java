@@ -24,6 +24,7 @@ import com.cspire.prov.framework.blackout.BlackoutService;
 import com.cspire.prov.framework.exceptions.InvalidConfig;
 import com.cspire.prov.framework.exceptions.InvalidRequest;
 import com.cspire.prov.framework.exceptions.ServerInternalError;
+import com.cspire.prov.framework.global.constants.Defaults;
 import com.cspire.prov.framework.housekeeping.HouseKeepingErrorCodes;
 import com.cspire.prov.framework.housekeeping.HouseKeepingService;
 import com.cspire.prov.framework.housekeeping.HouseKeepingStatusCodes;
@@ -65,19 +66,43 @@ public class MobiProvController {
     @CrossOrigin
     @RequestMapping(value = "/mobi/omnia", method = RequestMethod.POST)
     @ResponseBody
-    public ProvMngrResponse mobiForOmniaProcessor(@RequestBody RawXmlStringPayload xmlRequest,HttpServletResponse resp) throws IOException {
+    public ProvMngrResponse mobiForOmniaProcessor(@RequestBody RawXmlStringPayload xmlRequest,
+            HttpServletResponse resp) throws IOException {
         if (blackoutService.checkForBalckout("rest/mobi/omnia")) {
             return new ProvMngrResponse(utils.getCurrentEpoch(), ProvMngrResponse.BLACKOUT, null, null,
                     ProvMngrResponse.FAIL_MSG, ProvMngrResponse.BLACKOUT_MSG, true);
         }              
         MobitvReq inputPayload=omniaPayloadAdaptor.omniaXmlToMobiReq(xmlRequest);        
-        return receiveReqAndSetLoginfo(inputPayload, false,inputPayload.getServiceRequestItemId(),resp,null);
+        return receiveReqAndSetLoginfo(inputPayload, 
+                false,
+                inputPayload.getServiceRequestItemId(),
+                resp,
+                Defaults.DEFAULT_PROV_ID);
+    }
+    
+    @CrossOrigin
+    @RequestMapping(value = "/mobi/omniaSimulate", method = RequestMethod.POST)
+    @ResponseBody
+    public ProvMngrResponse mobiForOmniaSimulate(@RequestBody RawXmlStringPayload xmlRequest,
+            HttpServletResponse resp) throws IOException {
+        if (blackoutService.checkForBalckout("rest/mobi/omniaSimulate")) {
+            return new ProvMngrResponse(utils.getCurrentEpoch(), ProvMngrResponse.BLACKOUT, null, null,
+                    ProvMngrResponse.FAIL_MSG, ProvMngrResponse.BLACKOUT_MSG, true);
+        }              
+        MobitvReq inputPayload=omniaPayloadAdaptor.omniaXmlToMobiReq(xmlRequest,true);        
+        return receiveReqAndSetLoginfo(inputPayload, 
+                true,
+                inputPayload.getServiceRequestItemId(),
+                resp,
+                Defaults.DEFAULT_PROV_ID);
     }
     
     @CrossOrigin
     @RequestMapping(value = "/mobi", method = RequestMethod.POST)
     @ResponseBody
-    public ProvMngrResponse mobiProvRequestProcessor(@RequestHeader("provId") Integer provId,@RequestBody MobitvReq inputPayload,HttpServletResponse resp) {
+    public ProvMngrResponse mobiProvRequestProcessor(@RequestHeader("provId") Integer provId,
+            @RequestBody MobitvReq inputPayload,
+            HttpServletResponse resp) {
         // TODO: Implement the filter based blackout.
         if (blackoutService.checkForBalckout("rest/mobi")) {
             return new ProvMngrResponse(utils.getCurrentEpoch(), ProvMngrResponse.BLACKOUT, null, null,
@@ -92,7 +117,9 @@ public class MobiProvController {
     @CrossOrigin
     @RequestMapping(value = "/mobiSimulate", method = RequestMethod.POST)
     @ResponseBody
-    public ProvMngrResponse mobiProvRequestValidator(@RequestHeader("provId") Integer provId,@RequestBody MobitvReq inputPayload,HttpServletResponse resp) {
+    public ProvMngrResponse mobiProvRequestValidator(@RequestHeader("provId") Integer provId,
+            @RequestBody MobitvReq inputPayload,
+            HttpServletResponse resp) {
         // TODO: Implement the filter based blackout.
         if (blackoutService.checkForBalckout("rest/mobiSimulate")) {
             return new ProvMngrResponse(utils.getCurrentEpoch(), ProvMngrResponse.BLACKOUT, null, null,
@@ -116,7 +143,9 @@ public class MobiProvController {
         }
     }
     
-    private ProvMngrResponse receiveReqAndSetLoginfo(MobitvReq inputPayload, Boolean isValidateReq,Integer serviceRequestItemId,HttpServletResponse resp,Integer provId) {       
+    private ProvMngrResponse receiveReqAndSetLoginfo(MobitvReq inputPayload, 
+            Boolean isValidateReq,Integer serviceRequestItemId,
+            HttpServletResponse resp,Integer provId) {       
         reqInfo.setIsValidationReq(isValidateReq);
         reqInfo.setProvId(provId);
         
