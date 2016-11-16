@@ -18,12 +18,10 @@ public class ReqConfig {
         return reqInfo;
     }
     
-    @Bean
+    /*@Bean
     public RestTemplate mobiRestTemplate() {
         return RestClient.getBufferedRestClient();
-        /*RestTemplate restTemplate = new RestTemplate();
-        return restTemplate;*/
-    }
+    }*/
     
     @Bean
     public ProcessMobiRequest processMobiRequest(){

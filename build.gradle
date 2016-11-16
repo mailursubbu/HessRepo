@@ -71,6 +71,7 @@ dependencies {
 	compile('org.springframework.ws:spring-ws-core')
 	compile('org.springframework.retry:spring-retry:1.1.2.RELEASE')
 	compile("org.springframework.boot:spring-boot-starter")
+	compile 'org.apache.httpcomponents:httpclient:4.5.2'
 	//compile 'org.springframework.security:spring-security-web:4.1.0.RELEASE'
 	//compile('org.springframework.boot:spring-boot-starter-mail:1.2.6.RELEASE')
 	jaxb "com.sun.xml.bind:jaxb-xjc:2.1.7"

@@ -1,1 +1,9 @@
 CSpire Mobi Provisioning Manager
+
+Certificate import steps:
+
+0. Find the JRE used for launching the Mobi PM. I am using C:\Program Files\Java\jdk1.8.0_101\jre
+1. Update PATH env variable with C:\Program Files\Java\jdk1.8.0_101\jre\bin (It may be different on your machine). This would make "keytool" command available to be run from any dir
+2. Cd "c:\Program Files\Java\jdk1.8.0_101\jre\lib\security"
+3. Import the certificate provided by Mobi mobiSim.cer using command
+ keytool -importcert -keystore cacerts -alias mobiPm -file "c:\Users\smujamadar\ssl\mobiSim.cer"
