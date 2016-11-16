@@ -6,4 +6,7 @@ Certificate import steps:
 1. Update PATH env variable with C:\Program Files\Java\jdk1.8.0_101\jre\bin (It may be different on your machine). This would make "keytool" command available to be run from any dir
 2. Cd "c:\Program Files\Java\jdk1.8.0_101\jre\lib\security"
 3. Import the certificate provided by Mobi mobiSim.cer using command
+ #Mobi Simulator
  keytool -importcert -keystore cacerts -alias mobiPm -file "c:\Users\smujamadar\ssl\mobiSim.cer"
+ #Mobi INt Server
+ keytool -importcert -keystore cacerts -alias mobiPmServer -file c:\Users\smujamadar\Documents\DemoGit\mobipm\mobiServer.cer
