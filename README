@@ -1,12 +1,17 @@
 CSpire Mobi Provisioning Manager
 
-Certificate import steps:
+We need to utilize a certificate from Mobi to access their server. Certificate import steps:
 
-0. Find the JRE used for launching the Mobi PM. I am using C:\Program Files\Java\jdk1.8.0_101\jre
-1. Update PATH env variable with C:\Program Files\Java\jdk1.8.0_101\jre\bin (It may be different on your machine). This would make "keytool" command available to be run from any dir
-2. Cd "c:\Program Files\Java\jdk1.8.0_101\jre\lib\security"
-3. Import the certificate provided by Mobi mobiSim.cer using command
- #Mobi Simulator
- keytool -importcert -keystore cacerts -alias mobiPm -file "c:\Users\smujamadar\ssl\mobiSim.cer"
- #Mobi INt Server
- keytool -importcert -keystore cacerts -alias mobiPmServer -file c:\Users\smujamadar\Documents\DemoGit\mobipm\mobiServer.cer
+1. Find the JRE used for launching the Mobi PM. I am using C:\Program Files\Java\jdk1.8.0_73
+		The path can be found from within Eclipse by doing Window / Preferences / Java / Installed JREs and finding the path in the Location column
+2. Update PATH env variable with C:\Program Files\Java\jdk1.8.0_73\jre\bin (It may be different on your machine). This will make "keytool" command available to be run from any dir
+		Add \jre\bin to the path found in step 0 and the location to the PATH environment variable. Control Panel / System / Advanced Settings / Environment Variables
+3. Cd "c:\Program Files\Java\jdk1.8.0_101\jre\lib\security"
+		Bring up the cmd window as Administrator (From windows start icon, type cmd and right click cmd from the list of programs and run as administrator)
+4. Import the certificates provided by Mobi using these 2 DOS commands:
+	keytool -importcert -keystore cacerts -alias mobiPm -file "C:\Users\dgrimmer\workspace\Provisioning\mobipm\MobiSim.cer"
+	keytool -importcert -keystore cacerts -alias mobiPmServer -file "C:\Users\dgrimmer\workspace\Provisioning\mobipm\mobiServer.cer"
+		Note: change dgrimmer to your userid
+		Note: password is changeit (default for java)
+		Note: answer yes to “Trust this certificate” prompt
+		
