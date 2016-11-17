@@ -182,14 +182,20 @@ public class MobiProvController {
         try {
             ResponseEntity<MobiResponse> response = processMobiRequest.processMobiRequest(req);
             if(response.getStatusCode()!=HttpStatus.OK){
-                InvalidRequest invalidReq = new InvalidRequest("Request Processing Failed in Mobi. Status Code:"
-                                            +response.getStatusCode().value()+" Msg:"+response.getStatusCode().getReasonPhrase() +
-                                            " More info:"+response.getBody().getError() );
+                MobiResponse respRecieved = response.getBody();
+                
+                
+                String msgFailure = "Mobi Processing Failed. Error Code:"+respRecieved.getError_code()+
+                " Error Msg:"+respRecieved.getError_message()+
+                " Error Detail:"+respRecieved.getError_detail();
+                
+                InvalidRequest invalidReq = new InvalidRequest( msgFailure);
                 mobiHouseKeepingSer.houseKeepingUpdate(req, invalidReq,
                         HouseKeepingErrorCodes.MOBI_PROCESSING_FAILED, 
                         HouseKeepingStatusCodes.FAILED,reqInfo.getProvId());
-                resp.sendError(response.getStatusCode().value(),response.getBody().getMessage());
-                return new  ProvMngrResponse(utils.getCurrentEpoch(), response.getStatusCode().value(), response.getBody().getError(), null, response.getBody().getMessage(), ProvMngrResponse.MOBI,
+                resp.sendError(response.getStatusCode().value(),msgFailure);
+                return new  ProvMngrResponse(utils.getCurrentEpoch(), response.getStatusCode().value(), msgFailure, null, 
+                        msgFailure, ProvMngrResponse.MOBI,
                         false) ; 
                 }
         } catch (ResourceAccessException e) {
