@@ -20,6 +20,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.ResourceAccessException;
 
+import com.cspire.prov.dtf.model.DailyTransFile;
+import com.cspire.prov.dtf.model.DailyTransFileRepo;
 import com.cspire.prov.framework.blackout.BlackoutService;
 import com.cspire.prov.framework.exceptions.InvalidConfig;
 import com.cspire.prov.framework.exceptions.InvalidRequest;
@@ -32,6 +34,8 @@ import com.cspire.prov.framework.model.ProvMngrResponse;
 import com.cspire.prov.framework.model.RawXmlStringPayload;
 import com.cspire.prov.framework.model.mobi.MobiResponse;
 import com.cspire.prov.framework.model.mobi.MobitvReq;
+import com.cspire.prov.framework.model.mobi.Purchase_response;
+import com.cspire.prov.framework.model.mobi.WhatToDoWithComp;
 import com.cspire.prov.framework.utils.UtilFuncs;
 import com.cspire.prov.housekeeping.MobiHouseKeepingService;
 import com.cspire.prov.mobi.req.ProcessMobiRequest;
@@ -62,6 +66,10 @@ public class MobiProvController {
 
     @Autowired
     OmniaPayloadAdaptor omniaPayloadAdaptor;
+    
+    @Autowired
+    DailyTransFileRepo dtfRepo;
+    
     
     @CrossOrigin
     @RequestMapping(value = "/mobi/omnia", method = RequestMethod.POST)
@@ -178,13 +186,78 @@ public class MobiProvController {
         MDC.remove("SimMode");
     }
 
+    private void updateDtf(MobitvReq req,ResponseEntity<MobiResponse> response){       
+        
+        
+        Long currentTime = System.currentTimeMillis();
+           
+        
+        
+        
+        MobiResponse mobiRespRecieved = response.getBody();
+        Purchase_response[] purResps = mobiRespRecieved.getPurchase_response();        
+        for(Purchase_response purResp:purResps){
+            DailyTransFile dtf = new DailyTransFile();
+            dtf.setTxnTime(currentTime);  
+            populateMasterDtfFromReq(dtf,req);
+            populateDtfFromPurchase(dtf,req,purResp);
+            dtfRepo.save(dtf);
+            log.trace("Dtf updated with:{}",dtf);
+        }   
+    }
+    
+    private void populateDtfFromPurchase(DailyTransFile dtf,MobitvReq req,Purchase_response purResp){
+        String prodId=purResp.getProduct_id();
+        Long purchaseId = purResp.getPurchase_id();
+        
+        String status = purResp.getStatus();
+        log.debug("prodId:{} purchaseId:{} status:{}",prodId,purchaseId,status);
+        
+        dtf.setTxnId(purchaseId);
+        dtf.setProductId(prodId);
+        dtf.setTxnType(status);
+    }
+
+    private String getOrigin(MobitvReq req){
+        String action = req.getPurchase()[0].getAction();
+        String origin = null;
+        if(action.equals(WhatToDoWithComp.CREATE.name().toLowerCase())){
+            origin = req.getPurchase()[0].getPurchase_origin();    
+        }else{
+            origin = req.getPurchase()[0].getCancel_origin();
+        }
+        return origin;
+    }
+    
+   
+    private void populateMasterDtfFromReq(DailyTransFile dtf,MobitvReq req){
+        //Get Origin
+        dtf.setOrigin(this.getOrigin(req));
+        
+        dtf.setBsiOmniaSo(((Number)(req.getServiceOrder())).longValue());
+
+        //Get provId from reqInfo
+        dtf.setProvId(reqInfo.getProvId());
+        
+        dtf.setuId(this.getExternalId(req));
+        return;
+    }
+    private String getExternalId(MobitvReq req){
+        
+        String accId = req.getAccountNum();
+        Long locId = req.getLocationId();
+        if(locId==null){
+            return accId;
+        }else{
+            return accId.toString()+"-"+locId.toString();
+        }
+    }
     private ProvMngrResponse mobiProvisioner(MobitvReq req,HttpServletResponse resp) {
         try {
             ResponseEntity<MobiResponse> response = processMobiRequest.processMobiRequest(req);
             if(response.getStatusCode()!=HttpStatus.OK){
                 MobiResponse respRecieved = response.getBody();
-                
-                
+                            
                 String msgFailure = "Mobi Processing Failed. Error Code:"+respRecieved.getError_code()+
                 " Error Msg:"+respRecieved.getError_message()+
                 " Error Detail:"+respRecieved.getError_detail();
@@ -197,6 +270,9 @@ public class MobiProvController {
                 return new  ProvMngrResponse(utils.getCurrentEpoch(), response.getStatusCode().value(), msgFailure, null, 
                         msgFailure, ProvMngrResponse.MOBI,
                         false) ; 
+                }else{
+                    //Update the DTF
+                    this.updateDtf(req, response);
                 }
         } catch (ResourceAccessException e) {
            mobiHouseKeepingSer.houseKeepingUpdate(req, e,

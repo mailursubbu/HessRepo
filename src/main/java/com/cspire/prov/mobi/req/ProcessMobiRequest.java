@@ -11,6 +11,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
@@ -55,7 +56,7 @@ public class ProcessMobiRequest {
         }
     }
     
-    public MobiReqPayload generateMobiPayload(MobitvReq req) {
+    private MobiReqPayload generateMobiPayload(MobitvReq req) {
         MobiReqPayload mobiReq = new MobiReqPayload();
         this.updateVerndorPurchaseId(req);
         mobiReq.setPurchase(req.getPurchase());
@@ -63,6 +64,7 @@ public class ProcessMobiRequest {
         return mobiReq;
     }
 
+    @Retryable
     public ResponseEntity<MobiResponse>  processMobiRequest(MobitvReq req) {       
             HttpEntity<Object> entity = prepareRpcEntity(req);
             String externalId = this.prepareExternalId(req);
