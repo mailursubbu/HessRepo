@@ -19,6 +19,7 @@ import com.cspire.prov.framework.model.mobi.MobiReqPayload;
 import com.cspire.prov.framework.model.mobi.MobiResponse;
 import com.cspire.prov.framework.model.mobi.MobitvReq;
 import com.cspire.prov.framework.model.mobi.Purchase;
+import com.cspire.prov.framework.model.mobi.WhatToDoWithComp;
 
 @Component
 public class ProcessMobiRequest {
@@ -45,21 +46,30 @@ public class ProcessMobiRequest {
     private String mobiPartner;
     
 
-    private void updateVerndorPurchaseId(MobitvReq req){
+    private void updateVerndorPurchaseIdAndOrigin(MobitvReq req){
         Integer provId = reqInfo.getProvId();
         Integer servOrder = req.getServiceOrder();
         String verndorPurId = provId.toString()+"-"+servOrder.toString();
         log.trace("verndorPurId:{}",verndorPurId);
         Purchase[] purchases = req.getPurchase();
+        String origin = req.getOrigin();
         for(Purchase pur:purchases){
             pur.setVendor_purchase_id(verndorPurId);
+            String action = pur.getAction();
+ 
+            if(action.equals(WhatToDoWithComp.CREATE.name().toLowerCase())){
+                pur.setPurchase_origin(origin);
+            }else{
+                pur.setCancel_origin(origin);
+            }            
         }
     }
-    
+        
     private MobiReqPayload generateMobiPayload(MobitvReq req) {
         MobiReqPayload mobiReq = new MobiReqPayload();
-        this.updateVerndorPurchaseId(req);
+        this.updateVerndorPurchaseIdAndOrigin(req);
         mobiReq.setPurchase(req.getPurchase());
+        
         
         return mobiReq;
     }

@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import com.cspire.prov.framework.apmax.payload.jaxb.REQUEST;
 import com.cspire.prov.framework.apmax.payload.jaxb.REQUEST.SERVICE.ITEM.FEATURE;
 import com.cspire.prov.framework.exceptions.InvalidConfig;
+import com.cspire.prov.framework.global.constants.Defaults;
 import com.cspire.prov.framework.model.RawXmlStringPayload;
 import com.cspire.prov.framework.model.mobi.MobitvReq;
 import com.cspire.prov.framework.model.mobi.Purchase;
@@ -38,6 +39,7 @@ public class OmniaPayloadAdaptor {
         mobitvReq.setServiceOrder(req.getSERVICEORDERNUMBER());
         mobitvReq.setIsValidationReq(isSimulate);
         mobitvReq.setPurchase(this.getIptvChannelList(req));
+        mobitvReq.setOrigin(Defaults.ORIGIN_OMNIA);
         return mobitvReq;        
     }
     
