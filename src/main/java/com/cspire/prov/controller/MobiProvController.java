@@ -188,11 +188,7 @@ public class MobiProvController {
 
     private void updateDtf(MobitvReq req,ResponseEntity<MobiResponse> response){       
         
-        
         Long currentTime = System.currentTimeMillis();
-           
-        
-        
         
         MobiResponse mobiRespRecieved = response.getBody();
         Purchase_response[] purResps = mobiRespRecieved.getPurchase_response();        
@@ -287,6 +283,12 @@ public class MobiProvController {
             resp.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());           
             return new  ProvMngrResponse(utils.getCurrentEpoch(), HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage(), utils.exceptionStackTrace(e), "Mobi PM- PersistenceException:DB operation failed", ProvMngrResponse.MOBI,
                     false) ;
+        }catch (InvalidRequest e) {
+           mobiHouseKeepingSer.houseKeepingUpdate(req, e,
+                    HouseKeepingErrorCodes.INVALID_REQUEST_OR_CONFIG, HouseKeepingStatusCodes.FAILED,reqInfo.getProvId());
+           resp.setStatus(HttpStatus.BAD_REQUEST.value());           
+           return new  ProvMngrResponse(utils.getCurrentEpoch(), HttpStatus.BAD_REQUEST.value(), ProvMngrResponse.MOBI_PROCESSING_FAILED, utils.exceptionStackTrace(e), "Mobi PM-"+e.getMessage(), ProvMngrResponse.MOBI,
+                   false) ;
         } catch (InvalidConfig e) {
            mobiHouseKeepingSer.houseKeepingUpdate(req, e,
                     HouseKeepingErrorCodes.INTENAL_SERVER_ERROR, HouseKeepingStatusCodes.FAILED,reqInfo.getProvId());
