@@ -39,8 +39,8 @@ release {
 }*/
 
 jar {
-	baseName = 'ApMaxProvMngr'
-	version = '1.005'
+	baseName = 'MobiProvMngr'
+	version = '1.000'
 }
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
