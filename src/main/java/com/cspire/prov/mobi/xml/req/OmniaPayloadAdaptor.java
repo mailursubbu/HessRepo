@@ -35,7 +35,7 @@ public class OmniaPayloadAdaptor {
         MobitvReq mobitvReq = new MobitvReq();
         mobitvReq.setServiceRequestItemId(xmlRequest.getServiceRequestItemId());
         REQUEST req = (REQUEST) mobiPayloadProcessor.xmlStringToObject(xmlReq);
-        mobitvReq.setAccountNum(req.getACCOUNT().getACCOUNTCODE().trim());
+        mobitvReq.setAccountCode(req.getACCOUNT().getACCOUNTCODE().trim());
         mobitvReq.setServiceOrder(req.getSERVICEORDERNUMBER());
         mobitvReq.setIsValidationReq(isSimulate);
         mobitvReq.setPurchase(this.getIptvChannelList(req));

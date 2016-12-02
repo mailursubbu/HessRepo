@@ -89,9 +89,9 @@ public class ProcessMobiRequest {
     private String prepareExternalId(MobitvReq req){
         Long locId = req.getLocationId();
         if(locId!=null){
-            return         req.getAccountNum().trim()+"-"+req.getLocationId().toString();
+            return         req.getAccountCode().trim()+"-"+req.getLocationId().toString();
         }else{
-            return req.getAccountNum().trim();
+            return req.getAccountCode().trim();
         }
     }
     

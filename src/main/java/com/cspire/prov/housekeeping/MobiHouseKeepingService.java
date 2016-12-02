@@ -28,13 +28,13 @@ public class MobiHouseKeepingService {
         
        Integer accountNum=null;       
        try{
-           accountNum=Integer.parseInt(req.getAccountNum().trim());   
+           accountNum=Integer.parseInt(req.getAccountCode().trim());   
        }catch(Exception e){
            log.debug("Not able to convert String getACCOUNTCODE:"+
-                        req.getAccountNum().trim()+
+                        req.getAccountCode().trim()+
                         " into Integer. Lets not fail because of this. "
                         + "Lets use account id for housekeeping in this case",e);
-           accountNum=Integer.parseInt(req.getAccountNum());
+           accountNum=Integer.parseInt(req.getAccountCode());
        }
        
        Integer serviceOrder=req.getServiceOrder();

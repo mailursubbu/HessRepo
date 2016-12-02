@@ -240,7 +240,7 @@ public class MobiProvController {
     }
     private String getExternalId(MobitvReq req){
         
-        String accId = req.getAccountNum();
+        String accId = req.getAccountCode();
         Long locId = req.getLocationId();
         if(locId==null){
             return accId;
@@ -267,6 +267,7 @@ public class MobiProvController {
                         msgFailure, ProvMngrResponse.MOBI,
                         false) ; 
                 }else{
+                    
                     //Update the DTF
                     this.updateDtf(req, response);
                 }
@@ -307,7 +308,7 @@ public class MobiProvController {
             return new  ProvMngrResponse(utils.getCurrentEpoch(), HttpStatus.INTERNAL_SERVER_ERROR.value(), errorMsg, utils.exceptionStackTrace(e), "Mobi PM-"+errorMsg, ProvMngrResponse.MOBI,
                     false) ;           
         }        
-        return new  ProvMngrResponse(utils.getCurrentEpoch(), HttpStatus.OK.value(), null, null, null, ProvMngrResponse.MOBI,
+        return new  ProvMngrResponse(utils.getCurrentEpoch(), HttpStatus.OK.value(), null, null, "Mobi provisioning successful", ProvMngrResponse.MOBI,
                 true) ;  
     }
 

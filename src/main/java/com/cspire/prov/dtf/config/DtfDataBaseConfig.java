@@ -9,7 +9,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.JpaVendorAdapter;
@@ -59,8 +58,8 @@ class DtfDataBaseConfig {
 		
 	private JpaVendorAdapter jpaVendorAdapter() {
         HibernateJpaVendorAdapter jpaVendorAdapter = new HibernateJpaVendorAdapter();
-        jpaVendorAdapter.setShowSql(true);
-        jpaVendorAdapter.setGenerateDdl(true);
+        jpaVendorAdapter.setShowSql(false);
+        jpaVendorAdapter.setGenerateDdl(false);
         //jpaVendorAdapter.setDatabase(Database.POSTGRESQL);
         jpaVendorAdapter.setDatabase(Database.SQL_SERVER);
         return jpaVendorAdapter;
