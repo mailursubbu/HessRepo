@@ -68,31 +68,20 @@ public class ProcessMobiRequest {
     private MobiReqPayload generateMobiPayload(MobitvReq req) {
         MobiReqPayload mobiReq = new MobiReqPayload();
         this.updateVerndorPurchaseIdAndOrigin(req);
-        mobiReq.setPurchase(req.getPurchase());
-        
-        
+        mobiReq.setPurchase(req.getPurchase());        
         return mobiReq;
     }
 
     @Retryable
     public ResponseEntity<MobiResponse>  processMobiRequest(MobitvReq req) {       
             HttpEntity<Object> entity = prepareRpcEntity(req);
-            String externalId = this.prepareExternalId(req);
+            String externalId = req.getAccountCode().trim();
             String sig = genApiSig.generateSig(externalId);            
             ResponseEntity<MobiResponse> response = mobiRestTemplate.exchange(
                     mobiEndpoint, HttpMethod.POST, entity,
                     MobiResponse.class,mobiOperator,mobiBillingSystem,
-                    prepareExternalId(req),mobiPartner,System.currentTimeMillis()/1000L,sig);    
+                    externalId,mobiPartner,System.currentTimeMillis()/1000L,sig);    
             return response;
-    }
-
-    private String prepareExternalId(MobitvReq req){
-        Long locId = req.getLocationId();
-        if(locId!=null){
-            return         req.getAccountCode().trim()+"-"+req.getLocationId().toString();
-        }else{
-            return req.getAccountCode().trim();
-        }
     }
     
     private HttpEntity<Object> prepareRpcEntity(MobitvReq req) {

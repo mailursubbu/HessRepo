@@ -188,6 +188,14 @@ public class MobiProvController {
 
     private void updateDtf(MobitvReq req,ResponseEntity<MobiResponse> response){       
         
+        //If its a simulation request, dont make dtf entry
+        
+        Boolean isvalidationReq = reqInfo.getIsValidationReq();
+        if(isvalidationReq){
+            log.debug("DTF is not updated for validation requests");
+            return;
+        }
+        
         Long currentTime = System.currentTimeMillis();
         
         MobiResponse mobiRespRecieved = response.getBody();
