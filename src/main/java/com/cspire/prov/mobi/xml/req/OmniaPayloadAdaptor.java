@@ -11,8 +11,10 @@ import org.springframework.stereotype.Component;
 
 import com.cspire.prov.framework.apmax.payload.jaxb.REQUEST;
 import com.cspire.prov.framework.apmax.payload.jaxb.REQUEST.SERVICE.ITEM.FEATURE;
+import com.cspire.prov.framework.apmax.payload.jaxb.REQUEST.SERVICE.ITEM.QUANTITYBASED.COMPONENT;
 import com.cspire.prov.framework.exceptions.InvalidConfig;
 import com.cspire.prov.framework.global.constants.Defaults;
+import com.cspire.prov.framework.global.constants.StreamDvrCompName;
 import com.cspire.prov.framework.model.RawXmlStringPayload;
 import com.cspire.prov.framework.model.mobi.MobitvReq;
 import com.cspire.prov.framework.model.mobi.Purchase;
@@ -32,6 +34,7 @@ public class OmniaPayloadAdaptor {
     public MobitvReq omniaXmlToMobiReq(RawXmlStringPayload xmlRequest,Boolean isSimulate) throws IOException{
         String xmlReq = xmlRequest.getXmlString();
         
+        
         MobitvReq mobitvReq = new MobitvReq();
         mobitvReq.setServiceRequestItemId(xmlRequest.getServiceRequestItemId());
         REQUEST req = (REQUEST) mobiPayloadProcessor.xmlStringToObject(xmlReq);
@@ -40,9 +43,39 @@ public class OmniaPayloadAdaptor {
         mobitvReq.setIsValidationReq(isSimulate);
         mobitvReq.setPurchase(this.getIptvChannelList(req));
         mobitvReq.setOrigin(Defaults.ORIGIN_OMNIA);
+/*        mobitvReq.setDvrQuantity(this.getDvrQuantity(req));
+        mobitvReq.setStreamQuantity(this.getStreamQuantity(req));*/
+        
         return mobitvReq;        
     }
     
+    private Integer getDvrQuantity(REQUEST req){
+    	Integer qnt = getCompQuantity( req,  StreamDvrCompName.TV2STOR.name());
+    	if(qnt!=null){
+        	log.trace("TV2STOR Dvr={}",qnt);
+    	}
+    	return qnt;
+    	
+    }
+    
+    private Integer getStreamQuantity(REQUEST req){
+    	Integer qnt =  getCompQuantity( req,  StreamDvrCompName.TV2STRM.name());
+    	if(qnt!=null){
+        	log.trace("TV2STRM Stream={}",qnt);
+    	}
+    	return qnt;
+    }
+    
+    private Integer getCompQuantity(REQUEST req, String inputCompCode){
+    	List<COMPONENT> comps = req.getSERVICE().getITEM().getQUANTITYBASED().getCOMPONENT();
+    	for(COMPONENT comp:comps){
+    		String compCode = comp.getACTIVATIONDATE();
+    		if(compCode.equals(inputCompCode)){
+    			return (int) comp.getQUANTITY();
+    		}
+    	}
+    	return null;
+    }
     private Purchase[] getIptvChannelList(REQUEST req) {
         List<FEATURE> featureList = req.getSERVICE().getITEM().getFEATURE();
         ArrayList<Purchase> purchaseList = new ArrayList<Purchase>();

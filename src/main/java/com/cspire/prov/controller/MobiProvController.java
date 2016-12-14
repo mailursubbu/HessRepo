@@ -280,6 +280,7 @@ public class MobiProvController {
                     this.updateDtf(req, response);
                 }
         } catch (ResourceAccessException e) {
+           log.error("Mobi PM- Mobi Server is down",e);
            mobiHouseKeepingSer.houseKeepingUpdate(req, e,
                     HouseKeepingErrorCodes.MOBI_DOWN, HouseKeepingStatusCodes.FAILED,reqInfo.getProvId());
            resp.setStatus(HttpStatus.NOT_FOUND.value());           
