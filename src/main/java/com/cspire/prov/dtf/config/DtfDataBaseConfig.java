@@ -18,6 +18,8 @@ import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
+import com.cspire.prov.dtf.model.CacheEviction;
+
 
 @Configuration
 @EnableJpaRepositories( basePackages="com.cspire.prov.dtf.model",
@@ -63,5 +65,11 @@ class DtfDataBaseConfig {
         //jpaVendorAdapter.setDatabase(Database.POSTGRESQL);
         jpaVendorAdapter.setDatabase(Database.SQL_SERVER);
         return jpaVendorAdapter;
+    }
+	
+	@Bean
+    public CacheEviction cacheEviction() {
+	    CacheEviction cacheEviction = new CacheEviction();
+        return cacheEviction;
     }
 }

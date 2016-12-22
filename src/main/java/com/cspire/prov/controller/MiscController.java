@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.cspire.prov.dtf.model.CacheEviction;
 import com.cspire.prov.framework.blackout.Blackout;
 import com.cspire.prov.framework.blackout.BlackoutService;
 import com.cspire.prov.framework.exceptions.InvalidRequest;
@@ -40,6 +41,24 @@ public class MiscController {
     @Autowired
     LogLevelChangeService llChangeService;
 
+    @Autowired
+    CacheEviction cacheEviction;
+	
+	@CrossOrigin
+    @RequestMapping(value = "/evictCache", method = RequestMethod.GET)
+    @ResponseBody
+    public ProvMngrResponse evictCache() {
+        MDC.put("so", "MOBI_CACHE_EVICT");
+        try {
+            cacheEviction.cacheEvictAll();
+            log.info("Cache eviction successful");
+        } catch (Exception e) {
+            return new ProvMngrResponse(utils.getCurrentEpoch(), ProvMngrResponse.INVALID_REQUEST, e.getMessage(),
+                    utils.exceptionStackTrace(e), ProvMngrResponse.FAIL_MSG, "apmax", false);
+        }
+        return new ProvMngrResponse(ProvMngrResponse.SUCCESS, utils.getCurrentEpoch(), ProvMngrResponse.CACHE_EVICTED,
+                false);
+    }
 
     @CrossOrigin
     @RequestMapping(value = "/houseKeepingConfig", method = RequestMethod.GET)

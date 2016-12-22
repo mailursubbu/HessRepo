@@ -9,6 +9,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.cspire.prov.dtf.model.IptvFipsCode;
+import com.cspire.prov.dtf.model.IptvFipsCodeRepo;
+import com.cspire.prov.fips.PrepareFips;
 import com.cspire.prov.framework.apmax.payload.jaxb.REQUEST;
 import com.cspire.prov.framework.apmax.payload.jaxb.REQUEST.SERVICE.ITEM.FEATURE;
 import com.cspire.prov.framework.apmax.payload.jaxb.REQUEST.SERVICE.ITEM.QUANTITYBASED.COMPONENT;
@@ -27,7 +30,11 @@ public class OmniaPayloadAdaptor {
     private static final Logger log = LoggerFactory.getLogger(OmniaPayloadAdaptor.class);
 
     @Autowired
+    private IptvFipsCodeRepo iptvFipsCodeRepo;
+    
+    @Autowired
     XmlReqToObjProcessor mobiPayloadProcessor;
+    
     public MobitvReq omniaXmlToMobiReq(RawXmlStringPayload xmlRequest) throws IOException{
         return omniaXmlToMobiReq(xmlRequest, false);
     }
@@ -43,12 +50,43 @@ public class OmniaPayloadAdaptor {
         mobitvReq.setIsValidationReq(isSimulate);
         mobitvReq.setPurchase(this.getIptvChannelList(req));
         mobitvReq.setOrigin(Defaults.ORIGIN_OMNIA);
+        
+        
 /*        mobitvReq.setDvrQuantity(this.getDvrQuantity(req));
         mobitvReq.setStreamQuantity(this.getStreamQuantity(req));*/
         
-        return mobitvReq;        
+        IptvFipsCode fips = this.getIptvFipsCode(req);
+        String county = fips.getCounty();
+        String state = fips.getState();
+        
+        mobitvReq.setFipsCode(
+        PrepareFips.prepareFips(state, county));
+        
+        
+         return mobitvReq;        
     }
     
+	private IptvFipsCode getIptvFipsCode(REQUEST req) {
+
+        String countyJurisdiction = req.getSERVICE().getITEM().getLOCATION().getCOUNTYJURISDICTION();
+        Integer serviceOrder = req.getSERVICEORDERNUMBER();
+
+        List<IptvFipsCode> iptvFipsCodes = iptvFipsCodeRepo.findByFipsKey(countyJurisdiction);
+
+        if (iptvFipsCodes.size() > 1) {
+            log.warn("SO:{} processing stopped as more than one iptvFipsCodes found for countyJurisdiction:{}",
+                    serviceOrder, countyJurisdiction);
+            throw new InvalidConfig("More than one iptvFipsCodes found for countyJurisdiction:" + countyJurisdiction);
+        } else if (iptvFipsCodes.size() == 0) {
+            log.warn("SO:{} processing stopped as No iptvFipsCodes found for countyJurisdiction: {}", serviceOrder,
+                    countyJurisdiction);
+            throw new InvalidConfig("No iptvFipsCodes found for CountyJurisdiction: " + countyJurisdiction);
+        }
+        log.debug("SO:{} The iptvFipsCodes found is {}", serviceOrder, iptvFipsCodes.get(0).toString());
+        return iptvFipsCodes.get(0);
+    }
+	
+	
     private Integer getDvrQuantity(REQUEST req){
     	Integer qnt = getCompQuantity( req,  StreamDvrCompName.TV2STOR.name());
     	if(qnt!=null){
