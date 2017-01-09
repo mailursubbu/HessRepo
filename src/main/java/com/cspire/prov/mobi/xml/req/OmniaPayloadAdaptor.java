@@ -7,6 +7,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.cspire.prov.dtf.model.IptvFipsCode;
@@ -18,7 +19,6 @@ import com.cspire.prov.framework.apmax.payload.jaxb.REQUEST.SERVICE.ITEM.QUANTIT
 import com.cspire.prov.framework.exceptions.InvalidConfig;
 import com.cspire.prov.framework.global.constants.Defaults;
 import com.cspire.prov.framework.global.constants.GlobalEnums;
-import com.cspire.prov.framework.global.constants.StreamDvrCompName;
 import com.cspire.prov.framework.model.RawXmlStringPayload;
 import com.cspire.prov.framework.model.mobi.Extended_property;
 import com.cspire.prov.framework.model.mobi.MobitvReq;
@@ -37,6 +37,12 @@ public class OmniaPayloadAdaptor {
     @Autowired
     XmlReqToObjProcessor mobiPayloadProcessor;
     
+    @Value("${mobi.config.stream.code}")
+    String streamCode;
+    
+    @Value("${mobi.config.dvr.code}")
+    String dvrCode;
+    
     public MobitvReq omniaXmlToMobiReq(RawXmlStringPayload xmlRequest) throws IOException{
         return omniaXmlToMobiReq(xmlRequest, false);
     }
@@ -52,9 +58,6 @@ public class OmniaPayloadAdaptor {
         mobitvReq.setIsValidationReq(isSimulate);
         mobitvReq.setPurchase(this.getIptvChannelList(req));
         mobitvReq.setOrigin(Defaults.ORIGIN_OMNIA);
-        
-        
-
         
         IptvFipsCode fips = this.getIptvFipsCode(req);
         String county = fips.getCounty();
@@ -89,18 +92,18 @@ public class OmniaPayloadAdaptor {
 	
 	
     private Integer getDvrQuantity(REQUEST req){
-    	Integer qnt = getCompQuantity( req,  StreamDvrCompName.TV2STOR.name());
+    	Integer qnt = getCompQuantity( req,  this.dvrCode);
     	if(qnt!=null){
-        	log.trace("TV2STOR Dvr={}",qnt);
+        	log.trace("{} Dvr={}",dvrCode,qnt);
     	}
     	return qnt;
     	
     }
     
     private Integer getStreamQuantity(REQUEST req){
-    	Integer qnt =  getCompQuantity( req,  StreamDvrCompName.TV2STRM.name());
+    	Integer qnt =  getCompQuantity( req,  this.streamCode);
     	if(qnt!=null){
-        	log.trace("TV2STRM Stream={}",qnt);
+        	log.trace("{} Stream={}",streamCode,qnt);
     	}
     	return qnt;
     }
@@ -108,7 +111,9 @@ public class OmniaPayloadAdaptor {
     private Integer getCompQuantity(REQUEST req, String inputCompCode){
     	List<COMPONENT> comps = req.getSERVICE().getITEM().getQUANTITYBASED().getCOMPONENT();
     	for(COMPONENT comp:comps){
-    		String compCode = comp.getACTIVATIONDATE();
+    		
+    		//String compCode = comp.getACTIVATIONDATE();
+    		String compCode = comp.getCOMPONENTCODE();
     		if(compCode.equals(inputCompCode)){
     			return (int) comp.getQUANTITY();
     		}
@@ -117,9 +122,6 @@ public class OmniaPayloadAdaptor {
     }
     private Purchase[] getIptvChannelList(REQUEST req) {
         List<FEATURE> featureList = req.getSERVICE().getITEM().getFEATURE();
-        
-
-        
         ArrayList<Purchase> purchaseList = new ArrayList<Purchase>();
        
         for (FEATURE feature : featureList) {
@@ -138,10 +140,14 @@ public class OmniaPayloadAdaptor {
         }
         
         Purchase purchase=getDvrQtyPurchase(req);
-        purchaseList.add(purchase);
+        if(null != purchase){
+            purchaseList.add(purchase);
+        }
         
         purchase=getStreamQtyPurchase(req);
-        purchaseList.add(purchase);
+        if(null != purchase){
+            purchaseList.add(purchase);
+        }
         
         Purchase[] purchaseArray = new Purchase[purchaseList.size()];        
         return purchaseList.toArray(purchaseArray);
@@ -151,7 +157,7 @@ public class OmniaPayloadAdaptor {
         Integer dvrQty = this.getDvrQuantity(req);
         Purchase purchase = null;
         if(null != dvrQty){
-        	purchase=this.createQtyPurchase(StreamDvrCompName.TV2STOR,dvrQty.toString());
+        	purchase=this.createQtyPurchase(this.dvrCode,dvrQty.toString());
         }
         return purchase;
     }
@@ -160,14 +166,14 @@ public class OmniaPayloadAdaptor {
         Integer strmQty = this.getStreamQuantity(req);
         Purchase purchase = null;
         if(null != strmQty){
-        	purchase=this.createQtyPurchase(StreamDvrCompName.TV2STRM,strmQty.toString());
+        	purchase=this.createQtyPurchase(this.streamCode,strmQty.toString());
         }
         return purchase;
     }
     
-    private Purchase createQtyPurchase(StreamDvrCompName comp,String qty){
+    private Purchase createQtyPurchase(String comp,String qty){
     	Purchase purchase = new Purchase();
-        purchase.setProduct_id(comp.name());
+        purchase.setProduct_id(comp);
         purchase.setAction(GlobalEnums.CREATE.name().toLowerCase());
         
         Extended_property[] extPropArray = new Extended_property[1];
