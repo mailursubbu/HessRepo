@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -28,13 +29,16 @@ import com.cspire.prov.framework.exceptions.InvalidConfig;
 import com.cspire.prov.framework.exceptions.InvalidRequest;
 import com.cspire.prov.framework.exceptions.ServerInternalError;
 import com.cspire.prov.framework.global.constants.Defaults;
+import com.cspire.prov.framework.global.constants.GlobalEnums;
 import com.cspire.prov.framework.housekeeping.HouseKeepingErrorCodes;
 import com.cspire.prov.framework.housekeeping.HouseKeepingService;
 import com.cspire.prov.framework.housekeeping.HouseKeepingStatusCodes;
 import com.cspire.prov.framework.model.ProvMngrResponse;
 import com.cspire.prov.framework.model.RawXmlStringPayload;
+import com.cspire.prov.framework.model.mobi.Extended_property;
 import com.cspire.prov.framework.model.mobi.MobiResponse;
 import com.cspire.prov.framework.model.mobi.MobitvReq;
+import com.cspire.prov.framework.model.mobi.Purchase;
 import com.cspire.prov.framework.model.mobi.Purchase_response;
 import com.cspire.prov.framework.model.mobi.WhatToDoWithComp;
 import com.cspire.prov.framework.utils.UtilFuncs;
@@ -71,6 +75,8 @@ public class MobiProvController {
     @Autowired
     DailyTransFileRepo dtfRepo;
     
+    @Value("${mobi.config.quantity.compcodes}")
+    String quantityCompCodes;
 
     
     @CrossOrigin
@@ -154,6 +160,31 @@ public class MobiProvController {
         }
     }
     
+    private void validateQuantityFields(MobitvReq inputPayload){
+    	Purchase[] purs = inputPayload.getPurchase();
+    	for(int i=0;i<purs.length;i++){
+    		String prodId = purs[i].getProduct_id();
+    		if(quantityCompCodes.toUpperCase().contains(prodId.toUpperCase())){
+    			Extended_property[] extProp = purs[i].getExtended_property();
+    			if(null == extProp){
+    				log.error("For quantity based comp code:"+prodId+", quantity is needed to provision");
+    				throw new InvalidRequest("For quantity based comp code:"+prodId+", quantity is needed to provision");
+    			}
+    			String qtyFldName = purs[i].getExtended_property()[0].getName();
+    			String qtyFldVal = purs[i].getExtended_property()[0].getValue();
+    			
+    			if(null == qtyFldName || !qtyFldName.equals(GlobalEnums.QUANTITY.name().toLowerCase())){
+    				log.error("For quantity based comp code:"+prodId+", quantity is needed to provision");
+    				throw new InvalidRequest("For quantity based comp code:"+prodId+", quantity is needed to provision");
+    			}
+    			
+    			if(null == qtyFldVal){
+    				log.error("For quantity based comp code:"+prodId+", quantity is needed to provision");
+    				throw new InvalidRequest("For quantity based comp code:"+prodId+", quantity is needed to provision");
+    			}
+    		}
+    	}
+    }
     private ProvMngrResponse receiveReqAndSetLoginfo(MobitvReq inputPayload, 
             Boolean isValidateReq,Integer serviceRequestItemId,
             HttpServletResponse resp,Integer provId) {       
@@ -163,7 +194,16 @@ public class MobiProvController {
         this.populateLogginInfo(inputPayload);
                 
         log.info("Processing Started");
-        this.validateServiceOrderItem(inputPayload);
+        try{
+        	this.validateServiceOrderItem(inputPayload);
+            this.validateQuantityFields(inputPayload);
+        }catch (InvalidRequest e) {
+           mobiHouseKeepingSer.houseKeepingUpdate(inputPayload, e,
+                    HouseKeepingErrorCodes.INVALID_REQUEST_OR_CONFIG, HouseKeepingStatusCodes.FAILED,reqInfo.getProvId());
+           resp.setStatus(HttpStatus.BAD_REQUEST.value());           
+           return new  ProvMngrResponse(utils.getCurrentEpoch(), HttpStatus.BAD_REQUEST.value(), ProvMngrResponse.MOBI_PROCESSING_FAILED, utils.exceptionStackTrace(e), "Mobi PM-"+e.getMessage(), ProvMngrResponse.MOBI,
+                   false) ;
+        }
         
         try {
             return this.mobiProvisioner(inputPayload,resp);
