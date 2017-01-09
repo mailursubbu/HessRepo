@@ -17,8 +17,10 @@ import com.cspire.prov.framework.apmax.payload.jaxb.REQUEST.SERVICE.ITEM.FEATURE
 import com.cspire.prov.framework.apmax.payload.jaxb.REQUEST.SERVICE.ITEM.QUANTITYBASED.COMPONENT;
 import com.cspire.prov.framework.exceptions.InvalidConfig;
 import com.cspire.prov.framework.global.constants.Defaults;
+import com.cspire.prov.framework.global.constants.GlobalEnums;
 import com.cspire.prov.framework.global.constants.StreamDvrCompName;
 import com.cspire.prov.framework.model.RawXmlStringPayload;
+import com.cspire.prov.framework.model.mobi.Extended_property;
 import com.cspire.prov.framework.model.mobi.MobitvReq;
 import com.cspire.prov.framework.model.mobi.Purchase;
 import com.cspire.prov.framework.model.mobi.WhatToDoWithComp;
@@ -52,8 +54,7 @@ public class OmniaPayloadAdaptor {
         mobitvReq.setOrigin(Defaults.ORIGIN_OMNIA);
         
         
-/*        mobitvReq.setDvrQuantity(this.getDvrQuantity(req));
-        mobitvReq.setStreamQuantity(this.getStreamQuantity(req));*/
+
         
         IptvFipsCode fips = this.getIptvFipsCode(req);
         String county = fips.getCounty();
@@ -116,6 +117,9 @@ public class OmniaPayloadAdaptor {
     }
     private Purchase[] getIptvChannelList(REQUEST req) {
         List<FEATURE> featureList = req.getSERVICE().getITEM().getFEATURE();
+        
+
+        
         ArrayList<Purchase> purchaseList = new ArrayList<Purchase>();
        
         for (FEATURE feature : featureList) {
@@ -133,8 +137,46 @@ public class OmniaPayloadAdaptor {
             }           
         }
         
+        Purchase purchase=getDvrQtyPurchase(req);
+        purchaseList.add(purchase);
+        
+        purchase=getStreamQtyPurchase(req);
+        purchaseList.add(purchase);
+        
         Purchase[] purchaseArray = new Purchase[purchaseList.size()];        
         return purchaseList.toArray(purchaseArray);
+    }
+    
+    private Purchase getDvrQtyPurchase(REQUEST req){
+        Integer dvrQty = this.getDvrQuantity(req);
+        Purchase purchase = null;
+        if(null != dvrQty){
+        	purchase=this.createQtyPurchase(StreamDvrCompName.TV2STOR,dvrQty.toString());
+        }
+        return purchase;
+    }
+    
+    private Purchase getStreamQtyPurchase(REQUEST req){
+        Integer strmQty = this.getStreamQuantity(req);
+        Purchase purchase = null;
+        if(null != strmQty){
+        	purchase=this.createQtyPurchase(StreamDvrCompName.TV2STRM,strmQty.toString());
+        }
+        return purchase;
+    }
+    
+    private Purchase createQtyPurchase(StreamDvrCompName comp,String qty){
+    	Purchase purchase = new Purchase();
+        purchase.setProduct_id(comp.name());
+        purchase.setAction(GlobalEnums.CREATE.name().toLowerCase());
+        
+        Extended_property[] extPropArray = new Extended_property[1];
+        purchase.setExtended_property(extPropArray);
+        
+        extPropArray[0] = new Extended_property();
+        extPropArray[0].setName(GlobalEnums.QUANTITY.name().toLowerCase());
+        extPropArray[0].setValue(qty);
+        return purchase;   	
     }
     
     private Purchase createMobiPurchase(FEATURE feature,WhatToDoWithComp action){
