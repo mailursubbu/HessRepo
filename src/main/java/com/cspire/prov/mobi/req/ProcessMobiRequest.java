@@ -1,5 +1,6 @@
 package com.cspire.prov.mobi.req;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.slf4j.Logger;
@@ -15,6 +16,7 @@ import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import com.cspire.prov.framework.global.constants.MobiAccStatus;
 import com.cspire.prov.framework.model.mobi.MobiReqPayload;
 import com.cspire.prov.framework.model.mobi.MobiResponse;
 import com.cspire.prov.framework.model.mobi.MobitvReq;
@@ -45,6 +47,11 @@ public class ProcessMobiRequest {
     @Value("${mobi.partner}")
     private String mobiPartner;
     
+	@Value("${mobi.config.stream.code}")
+	String streamCode;
+
+	@Value("${mobi.config.dvr.code}")
+	String dvrCode;
 
     private void updateVerndorPurchaseIdAndOrigin(MobitvReq req){
         Integer provId = reqInfo.getProvId();
@@ -68,10 +75,13 @@ public class ProcessMobiRequest {
     private MobiReqPayload generateMobiPayload(MobitvReq req) {
         MobiReqPayload mobiReq = new MobiReqPayload();
         this.updateVerndorPurchaseIdAndOrigin(req);
-        mobiReq.setPurchase(req.getPurchase());        
+        mobiReq.setPurchase(req.getPurchase());   
+        mobiReq.setStatus(req.getStatus());
+        mobiReq.setFipsCode(req.getFipsCode());
         return mobiReq;
     }
 
+    
     @Retryable
     public ResponseEntity<MobiResponse>  processMobiRequest(MobitvReq req) {       
             HttpEntity<Object> entity = prepareRpcEntity(req);
