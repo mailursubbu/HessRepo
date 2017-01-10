@@ -23,7 +23,6 @@ import org.springframework.web.client.ResourceAccessException;
 
 import com.cspire.prov.dtf.model.DailyTransFile;
 import com.cspire.prov.dtf.model.DailyTransFileRepo;
-import com.cspire.prov.dtf.model.IptvFipsCodeRepo;
 import com.cspire.prov.framework.blackout.BlackoutService;
 import com.cspire.prov.framework.exceptions.InvalidConfig;
 import com.cspire.prov.framework.exceptions.InvalidRequest;
@@ -201,6 +200,7 @@ public class MobiProvController {
            mobiHouseKeepingSer.houseKeepingUpdate(inputPayload, e,
                     HouseKeepingErrorCodes.INVALID_REQUEST_OR_CONFIG, HouseKeepingStatusCodes.FAILED,reqInfo.getProvId());
            resp.setStatus(HttpStatus.BAD_REQUEST.value());           
+           this.clearLoggingInfo();
            return new  ProvMngrResponse(utils.getCurrentEpoch(), HttpStatus.BAD_REQUEST.value(), ProvMngrResponse.MOBI_PROCESSING_FAILED, utils.exceptionStackTrace(e), "Mobi PM-"+e.getMessage(), ProvMngrResponse.MOBI,
                    false) ;
         }
