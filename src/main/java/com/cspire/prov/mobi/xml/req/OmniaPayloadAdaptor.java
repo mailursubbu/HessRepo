@@ -1,7 +1,9 @@
 package com.cspire.prov.mobi.xml.req;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -25,6 +27,7 @@ import com.cspire.prov.framework.model.mobi.Extended_property;
 import com.cspire.prov.framework.model.mobi.MobitvReq;
 import com.cspire.prov.framework.model.mobi.Purchase;
 import com.cspire.prov.framework.model.mobi.WhatToDoWithComp;
+import com.cspire.prov.framework.utils.UtilFuncs;
 import com.cspire.prov.framework.xml.processor.XmlReqToObjProcessor;
 
 @Component
@@ -235,6 +238,7 @@ public class OmniaPayloadAdaptor {
 
 	private WhatToDoWithComp whatToDoWithComponent(FEATURE feature){
 
+		
 		if(feature.getACTION().equals("D")){
 			log.info("ACTION:{}, Hence COMPONENTCODE:{} would be deleted from mobi", 
 					feature.getACTION(),feature.getCOMPONENTCODE());
@@ -296,4 +300,27 @@ public class OmniaPayloadAdaptor {
 		}
 		return retVal;
 	}
+	
+    private Boolean isActiveComponent(FEATURE feature){
+        
+        String strDeactDate = feature.getDEACTIVATIONDATE();
+        Date deactDate = null;
+        SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yyyy");
+        if(strDeactDate!=null && !strDeactDate.equals("")){            
+            deactDate = UtilFuncs.stringToDate(strDeactDate);
+            Date todayDate = UtilFuncs.todayDate();
+            if(deactDate.compareTo(todayDate)<=0){
+                log.info("DEACTIVATIONDATE:{} <= today's date:{} for COMPONENTCODE:{}."
+                        + "Hence it wont be provisioned", 
+                        feature.getDEACTIVATIONDATE(),formatter.format(todayDate),feature.getCOMPONENTCODE());
+                return false;
+            }else{
+                log.info("DEACTIVATIONDATE:{} > today's date:{} for COMPONENTCODE:{}."
+                        + "Hence component code would be used for provisioning", 
+                        feature.getDEACTIVATIONDATE(),formatter.format(todayDate),feature.getCOMPONENTCODE());
+            }
+        }
+        return true;
+    }
+    
 }
