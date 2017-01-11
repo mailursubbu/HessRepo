@@ -95,7 +95,14 @@ public class OmniaPayloadAdaptor {
 
 
 	private Integer getDvrQuantity(REQUEST req){
-		Integer qnt = getCompQuantity( req,  this.dvrCode);
+		String operation = req.getSERVICE().getACTIVITY();
+		Integer qnt = null;
+		if(operation.equals("D")){
+			log.info("Disconnect operation, DVR would be set to 0");
+			qnt = 0;
+		}else{
+			qnt = getCompQuantity( req,  this.dvrCode);
+		}
 		if(qnt!=null){
 			log.trace("{} Dvr={}",dvrCode,qnt);
 		}
@@ -104,10 +111,12 @@ public class OmniaPayloadAdaptor {
 	}
 
 	private Integer getStreamQuantity(REQUEST req){
+		String operation = req.getSERVICE().getACTIVITY();
 		Integer qnt =  null;
-		if(this.isSuspend(req)){
+		if(operation.equals("D") &&
+				operation.equals("S")){
 			qnt = 0;
-			log.info("Suspend request, stream qty would be set to 0");
+			log.info("For Suspend/Disconnect request, stream qty would be set to 0");
 		}else{
 			qnt =  getCompQuantity( req,  this.streamCode);
 		}
@@ -152,9 +161,11 @@ public class OmniaPayloadAdaptor {
 		}
 
 		Purchase purchase=null;
-		//Non-suspend operations will only alter DVR.
-		//For suspend,  DVR wont be changed.
-		if(!this.isSuspend(req)){
+		//Non-suspend and non-resume operations will only alter DVR.
+		//For suspend and resume,  DVR wont be changed.
+		String operation = req.getSERVICE().getACTIVITY();
+		if(!operation.equals("S") &&
+				!operation.equals("R")){
 			purchase=getDvrQtyPurchase(req,accStatus);
 			if(null != purchase){
 				purchaseList.add(purchase);
