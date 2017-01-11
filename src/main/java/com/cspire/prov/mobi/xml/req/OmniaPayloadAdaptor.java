@@ -104,7 +104,13 @@ public class OmniaPayloadAdaptor {
 	}
 
 	private Integer getStreamQuantity(REQUEST req){
-		Integer qnt =  getCompQuantity( req,  this.streamCode);
+		Integer qnt =  null;
+		if(this.isSuspend(req)){
+			qnt = 0;
+			log.info("Suspend request, stream qty would be set to 0");
+		}else{
+			qnt =  getCompQuantity( req,  this.streamCode);
+		}
 		if(qnt!=null){
 			log.trace("{} Stream={}",streamCode,qnt);
 		}
@@ -145,11 +151,19 @@ public class OmniaPayloadAdaptor {
 			}           
 		}
 
-		Purchase purchase=getDvrQtyPurchase(req,accStatus);
-		if(null != purchase){
-			purchaseList.add(purchase);
+		Purchase purchase=null;
+		//Non-suspend operations will only alter DVR.
+		//For suspend,  DVR wont be changed.
+		if(!this.isSuspend(req)){
+			purchase=getDvrQtyPurchase(req,accStatus);
+			if(null != purchase){
+				purchaseList.add(purchase);
+			}	
+		}else{
+			log.info("Suspend transation, DVR qty wont be updated");
 		}
-
+		
+		
 		purchase=getStreamQtyPurchase(req,accStatus);
 		if(null != purchase){
 			purchaseList.add(purchase);
@@ -158,9 +172,19 @@ public class OmniaPayloadAdaptor {
 		Purchase[] purchaseArray = new Purchase[purchaseList.size()];        
 		return purchaseList.toArray(purchaseArray);
 	}
+	
+	private Boolean isSuspend(REQUEST req){
+		MobiAccStatus accStat = this.getMobiAccStatus(req);
+		if(accStat == MobiAccStatus.SUSPENDED){
+			return true;
+		}else{
+			return false;
+		}
+	}
 
 	private Purchase getDvrQtyPurchase(REQUEST req,MobiAccStatus accStatus){
 		Integer dvrQty = this.getDvrQuantity(req);
+		
 		Purchase purchase = null;
 		if(null != dvrQty){
 			purchase=this.createQtyPurchase(this.dvrCode,dvrQty.toString());
@@ -171,6 +195,7 @@ public class OmniaPayloadAdaptor {
 
 	private Purchase getStreamQtyPurchase(REQUEST req,MobiAccStatus accStatus){
 		Integer strmQty = this.getStreamQuantity(req);
+		
 		Purchase purchase = null;
 		if(null != strmQty){
 			purchase=this.createQtyPurchase(this.streamCode,strmQty.toString());
@@ -245,15 +270,15 @@ public class OmniaPayloadAdaptor {
 		case "NR":
 		case "P":
 		case "SR":
-			log.info("Processing reconnect request");
+			log.trace("Processing reconnect request");
 			retVal = MobiAccStatus.DEFAULT;
 			break;
 		case "C":
-			log.info("Processing change request");
+			log.trace("Processing change request");
 			retVal = MobiAccStatus.DEFAULT;
 			break;
 		case "M":
-			log.info("Processing move request");
+			log.trace("Processing move request");
 			retVal = MobiAccStatus.DEFAULT;
 			break;    
 		default:
