@@ -97,7 +97,8 @@ public class OmniaPayloadAdaptor {
 	private Integer getDvrQuantity(REQUEST req){
 		String operation = req.getSERVICE().getACTIVITY();
 		Integer qnt = null;
-		if(operation.equals("D")){
+		if(operation.equals("D") ||
+				operation.equals("ND")){
 			log.info("Disconnect operation, DVR would be set to 0");
 			qnt = 0;
 		}else{
@@ -113,8 +114,10 @@ public class OmniaPayloadAdaptor {
 	private Integer getStreamQuantity(REQUEST req){
 		String operation = req.getSERVICE().getACTIVITY();
 		Integer qnt =  null;
-		if(operation.equals("D") &&
-				operation.equals("S")){
+		if(operation.equals("D") ||
+				operation.equals("ND") ||
+				operation.equals("S") ||
+				operation.equals("NS")){
 			qnt = 0;
 			log.info("For Suspend/Disconnect request, stream qty would be set to 0");
 		}else{
@@ -165,6 +168,8 @@ public class OmniaPayloadAdaptor {
 		//For suspend and resume,  DVR wont be changed.
 		String operation = req.getSERVICE().getACTIVITY();
 		if(!operation.equals("S") &&
+				!operation.equals("NS") &&
+				!operation.equals("NR") &&
 				!operation.equals("R")){
 			purchase=getDvrQtyPurchase(req,accStatus);
 			if(null != purchase){
@@ -182,15 +187,6 @@ public class OmniaPayloadAdaptor {
 
 		Purchase[] purchaseArray = new Purchase[purchaseList.size()];        
 		return purchaseList.toArray(purchaseArray);
-	}
-	
-	private Boolean isSuspend(REQUEST req){
-		MobiAccStatus accStat = this.getMobiAccStatus(req);
-		if(accStat == MobiAccStatus.SUSPENDED){
-			return true;
-		}else{
-			return false;
-		}
 	}
 
 	private Purchase getDvrQtyPurchase(REQUEST req,MobiAccStatus accStatus){
