@@ -77,7 +77,7 @@ public class ProcessMobiRequest {
         this.updateVerndorPurchaseIdAndOrigin(req);
         mobiReq.setPurchase(req.getPurchase());   
         mobiReq.setStatus(req.getStatus());
-        mobiReq.setFipsCode(req.getFipsCode());
+        mobiReq.setFips_code(req.getFipsCode());
         return mobiReq;
     }
 
