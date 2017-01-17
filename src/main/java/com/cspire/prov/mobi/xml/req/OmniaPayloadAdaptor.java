@@ -139,6 +139,10 @@ public class OmniaPayloadAdaptor {
 			//String compCode = comp.getACTIVATIONDATE();
 			String compCode = comp.getCOMPONENTCODE();
 			if(compCode.equals(inputCompCode)){
+				if(comp.getACTION().equals("X")){
+					log.trace("{} is X, hence quantity would be returned as null",compCode);
+					return null;
+				}
 				return (int) comp.getQUANTITY();
 			}
 		}
@@ -194,6 +198,8 @@ public class OmniaPayloadAdaptor {
 
 	private Purchase getDvrQtyPurchase(REQUEST req,MobiAccStatus accStatus){
 		Integer dvrQty = this.getDvrQuantity(req);
+		
+		
 		
 		Purchase purchase = null;
 		if(null != dvrQty){
