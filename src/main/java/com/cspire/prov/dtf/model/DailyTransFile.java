@@ -22,7 +22,22 @@ public class DailyTransFile{
     private String origin;
     private String comment;
     private Long processed;
-    public Integer getId() {
+    private String accStatus;
+    private String fipsCode;
+    
+    public String getAccStatus() {
+		return accStatus;
+	}
+	public void setAccStatus(String accStatus) {
+		this.accStatus = accStatus;
+	}
+	public String getFipsCode() {
+		return fipsCode;
+	}
+	public void setFipsCode(String fipsCode) {
+		this.fipsCode = fipsCode;
+	}
+	public Integer getId() {
         return Id;
     }
     public void setId(Integer id) {

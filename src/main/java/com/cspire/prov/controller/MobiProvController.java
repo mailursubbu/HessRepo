@@ -287,6 +287,10 @@ public class MobiProvController {
         dtf.setProvId(reqInfo.getProvId());
         
         dtf.setuId(this.getExternalId(req));
+        
+        dtf.setAccStatus(req.getStatus());
+        
+        dtf.setFipsCode(req.getFipsCode());
         return;
     }
     private String getExternalId(MobitvReq req){
