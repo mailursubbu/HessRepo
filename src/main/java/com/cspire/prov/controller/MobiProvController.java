@@ -51,321 +51,322 @@ import com.cspire.prov.mobi.xml.req.OmniaPayloadAdaptor;
 @RequestMapping("/rest")
 public class MobiProvController {
 
-    private static final Logger log = LoggerFactory.getLogger(MobiProvController.class);
+	private static final Logger log = LoggerFactory.getLogger(MobiProvController.class);
 
-    @Autowired
-    MobiHouseKeepingService mobiHouseKeepingSer;
-    @Autowired
-    HouseKeepingService houseKeepingService;
-    @Autowired
-    UtilFuncs utils;
-    @Autowired
-    BlackoutService blackoutService;
+	@Autowired
+	MobiHouseKeepingService mobiHouseKeepingSer;
+	@Autowired
+	HouseKeepingService houseKeepingService;
+	@Autowired
+	UtilFuncs utils;
+	@Autowired
+	BlackoutService blackoutService;
 
-    @Autowired
-    ReqInfo reqInfo;
+	@Autowired
+	ReqInfo reqInfo;
 
-    @Autowired
-    ProcessMobiRequest processMobiRequest;
+	@Autowired
+	ProcessMobiRequest processMobiRequest;
 
-    @Autowired
-    OmniaPayloadAdaptor omniaPayloadAdaptor;
-    
-    @Autowired
-    DailyTransFileRepo dtfRepo;
-    
-    @Value("${mobi.config.quantity.compcodes}")
-    String quantityCompCodes;
+	@Autowired
+	OmniaPayloadAdaptor omniaPayloadAdaptor;
 
-    
-    @CrossOrigin
-    @RequestMapping(value = "/mobi/omnia", method = RequestMethod.POST)
-    @ResponseBody
-    public ProvMngrResponse mobiForOmniaProcessor(@RequestBody RawXmlStringPayload xmlRequest,
-            HttpServletResponse resp) throws IOException {
-        if (blackoutService.checkForBalckout("rest/mobi/omnia")) {
-            return new ProvMngrResponse(utils.getCurrentEpoch(), ProvMngrResponse.BLACKOUT, null, null,
-                    ProvMngrResponse.FAIL_MSG, ProvMngrResponse.BLACKOUT_MSG, true);
-        }              
-        MobitvReq inputPayload=omniaPayloadAdaptor.omniaXmlToMobiReq(xmlRequest);        
-        return receiveReqAndSetLoginfo(inputPayload, 
-                false,
-                inputPayload.getServiceRequestItemId(),
-                resp,
-                Defaults.DEFAULT_PROV_ID);
-    }
-    
-    @CrossOrigin
-    @RequestMapping(value = "/mobi/omniaSimulate", method = RequestMethod.POST)
-    @ResponseBody
-    public ProvMngrResponse mobiForOmniaSimulate(@RequestBody RawXmlStringPayload xmlRequest,
-            HttpServletResponse resp) throws IOException {
-        if (blackoutService.checkForBalckout("rest/mobi/omniaSimulate")) {
-            return new ProvMngrResponse(utils.getCurrentEpoch(), ProvMngrResponse.BLACKOUT, null, null,
-                    ProvMngrResponse.FAIL_MSG, ProvMngrResponse.BLACKOUT_MSG, true);
-        }              
-        MobitvReq inputPayload=omniaPayloadAdaptor.omniaXmlToMobiReq(xmlRequest,true);        
-        return receiveReqAndSetLoginfo(inputPayload, 
-                true,
-                inputPayload.getServiceRequestItemId(),
-                resp,
-                Defaults.DEFAULT_PROV_ID);
-    }
-    
-    
-    @CrossOrigin
-    @RequestMapping(value = "/mobi", method = RequestMethod.POST)
-    @ResponseBody
-    public ProvMngrResponse mobiProvRequestProcessor(@RequestHeader("provId") Integer provId,
-            @RequestBody MobitvReq inputPayload,
-            HttpServletResponse resp) {
-        // TODO: Implement the filter based blackout.
-        if (blackoutService.checkForBalckout("rest/mobi")) {
-            return new ProvMngrResponse(utils.getCurrentEpoch(), ProvMngrResponse.BLACKOUT, null, null,
-                    ProvMngrResponse.FAIL_MSG, ProvMngrResponse.BLACKOUT_MSG, true);
-        }
-        inputPayload.setIsValidationReq(false);
-        // Try the readonly operations
-        return receiveReqAndSetLoginfo(inputPayload, false,inputPayload.getServiceRequestItemId(),resp,provId);
-    }
+	@Autowired
+	DailyTransFileRepo dtfRepo;
+
+	@Value("${mobi.config.quantity.compcodes}")
+	String quantityCompCodes;
 
 
-    @CrossOrigin
-    @RequestMapping(value = "/mobiSimulate", method = RequestMethod.POST)
-    @ResponseBody
-    public ProvMngrResponse mobiProvRequestValidator(@RequestHeader("provId") Integer provId,
-            @RequestBody MobitvReq inputPayload,
-            HttpServletResponse resp) {
-        // TODO: Implement the filter based blackout.
-        if (blackoutService.checkForBalckout("rest/mobiSimulate")) {
-            return new ProvMngrResponse(utils.getCurrentEpoch(), ProvMngrResponse.BLACKOUT, null, null,
-                    ProvMngrResponse.FAIL_MSG, ProvMngrResponse.BLACKOUT_MSG, true);
-        }
+	@CrossOrigin
+	@RequestMapping(value = "/mobi/omnia", method = RequestMethod.POST)
+	@ResponseBody
+	public ProvMngrResponse mobiForOmniaProcessor(@RequestBody RawXmlStringPayload xmlRequest,
+			HttpServletResponse resp) throws IOException {
+		if (blackoutService.checkForBalckout("rest/mobi/omnia")) {
+			return new ProvMngrResponse(utils.getCurrentEpoch(), ProvMngrResponse.BLACKOUT, null, null,
+					ProvMngrResponse.FAIL_MSG, ProvMngrResponse.BLACKOUT_MSG, true);
+		}              
+		MobitvReq inputPayload=omniaPayloadAdaptor.omniaXmlToMobiReq(xmlRequest);        
+		return receiveReqAndSetLoginfo(inputPayload, 
+				false,
+				inputPayload.getServiceRequestItemId(),
+				resp,
+				Defaults.DEFAULT_PROV_ID);
+	}
 
-        inputPayload.setIsValidationReq(true);
-        /*
-         * Lets use orig req for all the read only txns with ApMax. maskedReq
-         * would be used for all the write txns with ApMax. House Keeping would
-         * be with orig request parameters.
-         */
-        return receiveReqAndSetLoginfo(inputPayload, true,inputPayload.getServiceRequestItemId(),resp,provId);
-    }
-    	
-    private void validateServiceOrderItem(MobitvReq inputPayload){
-        Integer serviceRequestItemId = inputPayload.getServiceRequestItemId();
-        if(serviceRequestItemId==null){
-            log.error("Input payload is missing serviceRequestItemId field");
-            throw new InvalidRequest("Input payload is missing serviceRequestItemId field");            
-        }
-    }
-    
-    private void validateQuantityFields(MobitvReq inputPayload){
-    	Purchase[] purs = inputPayload.getPurchase();
-    	for(int i=0;i<purs.length;i++){
-    		String prodId = purs[i].getProduct_id();
-    		if(quantityCompCodes.toUpperCase().contains(prodId.toUpperCase())){
-    			Extended_property[] extProp = purs[i].getExtended_property();
-    			if(null == extProp){
-    				log.error("For quantity based comp code:"+prodId+", quantity is needed to provision");
-    				throw new InvalidRequest("For quantity based comp code:"+prodId+", quantity is needed to provision");
-    			}
-    			String qtyFldName = purs[i].getExtended_property()[0].getName();
-    			String qtyFldVal = purs[i].getExtended_property()[0].getValue();
-    			
-    			if(null == qtyFldName || !qtyFldName.equals(GlobalEnums.QUANTITY.name().toLowerCase())){
-    				log.error("For quantity based comp code:"+prodId+", quantity is needed to provision");
-    				throw new InvalidRequest("For quantity based comp code:"+prodId+", quantity is needed to provision");
-    			}
-    			
-    			if(null == qtyFldVal){
-    				log.error("For quantity based comp code:"+prodId+", quantity is needed to provision");
-    				throw new InvalidRequest("For quantity based comp code:"+prodId+", quantity is needed to provision");
-    			}
-    		}
-    	}
-    }
-    private ProvMngrResponse receiveReqAndSetLoginfo(MobitvReq inputPayload, 
-            Boolean isValidateReq,Integer serviceRequestItemId,
-            HttpServletResponse resp,Integer provId) {       
-        reqInfo.setIsValidationReq(isValidateReq);
-        reqInfo.setProvId(provId);
-        
-        this.populateLogginInfo(inputPayload);
-                
-        log.info("Processing Started");
-        try{
-        	this.validateServiceOrderItem(inputPayload);
-            this.validateQuantityFields(inputPayload);
-        }catch (InvalidRequest e) {
-           mobiHouseKeepingSer.houseKeepingUpdate(inputPayload, e,
-                    HouseKeepingErrorCodes.INVALID_REQUEST_OR_CONFIG, HouseKeepingStatusCodes.FAILED,reqInfo.getProvId());
-           resp.setStatus(HttpStatus.BAD_REQUEST.value());           
-           this.clearLoggingInfo();
-           return new  ProvMngrResponse(utils.getCurrentEpoch(), HttpStatus.BAD_REQUEST.value(), ProvMngrResponse.MOBI_PROCESSING_FAILED, utils.exceptionStackTrace(e), "Mobi PM-"+e.getMessage(), ProvMngrResponse.MOBI,
-                   false) ;
-        }
-        
-        try {
-            return this.mobiProvisioner(inputPayload,resp);
-        } finally {
-            this.clearLoggingInfo();
-        }
-    }
+	@CrossOrigin
+	@RequestMapping(value = "/mobi/omniaSimulate", method = RequestMethod.POST)
+	@ResponseBody
+	public ProvMngrResponse mobiForOmniaSimulate(@RequestBody RawXmlStringPayload xmlRequest,
+			HttpServletResponse resp) throws IOException {
+		if (blackoutService.checkForBalckout("rest/mobi/omniaSimulate")) {
+			return new ProvMngrResponse(utils.getCurrentEpoch(), ProvMngrResponse.BLACKOUT, null, null,
+					ProvMngrResponse.FAIL_MSG, ProvMngrResponse.BLACKOUT_MSG, true);
+		}              
+		MobitvReq inputPayload=omniaPayloadAdaptor.omniaXmlToMobiReq(xmlRequest,true);        
+		return receiveReqAndSetLoginfo(inputPayload, 
+				true,
+				inputPayload.getServiceRequestItemId(),
+				resp,
+				Defaults.DEFAULT_PROV_ID);
+	}
 
-    private void populateLogginInfo(MobitvReq inputPayload) {
-        Boolean isValidationReq = reqInfo.getIsValidationReq();
-        if (isValidationReq == null) {
-            log.error("reqInfo needs to be set before populating logging info");
-            throw new ServerInternalError("reqInfo needs to be set before populating logging info");
-        }
-        Integer serviceOrder = inputPayload.getServiceOrder();
-     
-        MDC.put("so", serviceOrder.toString());
-        MDC.put("SimMode", isValidationReq.toString());
-    }
 
-    private void clearLoggingInfo() {
-        MDC.remove("so");
-        MDC.remove("SimMode");
-    }
+	@CrossOrigin
+	@RequestMapping(value = "/mobi", method = RequestMethod.POST)
+	@ResponseBody
+	public ProvMngrResponse mobiProvRequestProcessor(@RequestHeader("provId") Integer provId,
+			@RequestBody MobitvReq inputPayload,
+			HttpServletResponse resp) {
+		// TODO: Implement the filter based blackout.
+		if (blackoutService.checkForBalckout("rest/mobi")) {
+			return new ProvMngrResponse(utils.getCurrentEpoch(), ProvMngrResponse.BLACKOUT, null, null,
+					ProvMngrResponse.FAIL_MSG, ProvMngrResponse.BLACKOUT_MSG, true);
+		}
+		inputPayload.setIsValidationReq(false);
+		// Try the readonly operations
+		return receiveReqAndSetLoginfo(inputPayload, false,inputPayload.getServiceRequestItemId(),resp,provId);
+	}
 
-    private void updateDtf(MobitvReq req,ResponseEntity<MobiResponse> response){       
-        
-        //If its a simulation request, dont make dtf entry
-        
-        Boolean isvalidationReq = reqInfo.getIsValidationReq();
-        if(isvalidationReq){
-            log.debug("DTF is not updated for validation requests");
-            return;
-        }
-        
-        Long currentTime = System.currentTimeMillis();
-        
-        MobiResponse mobiRespRecieved = response.getBody();
-        Purchase_response[] purResps = mobiRespRecieved.getPurchase_response();        
-        for(Purchase_response purResp:purResps){
-            DailyTransFile dtf = new DailyTransFile();
-            dtf.setTxnTime(currentTime);  
-            populateMasterDtfFromReq(dtf,req);
-            populateDtfFromPurchase(dtf,req,purResp);
-            dtfRepo.save(dtf);
-            log.trace("Dtf updated with:{}",dtf);
-        }   
-    }
-    
-    private void populateDtfFromPurchase(DailyTransFile dtf,MobitvReq req,Purchase_response purResp){
-        String prodId=purResp.getProduct_id();
-        Long purchaseId = purResp.getPurchase_id();
-        
-        String status = purResp.getStatus();
-        log.debug("prodId:{} purchaseId:{} status:{}",prodId,purchaseId,status);
-        
-        dtf.setTxnId(purchaseId);
-        dtf.setProductId(prodId);
-        dtf.setTxnType(status);
-    }
 
-    private String getOrigin(MobitvReq req){
-        String action = req.getPurchase()[0].getAction();
-        String origin = null;
-        if(action.equals(WhatToDoWithComp.CREATE.name().toLowerCase())){
-            origin = req.getPurchase()[0].getPurchase_origin();    
-        }else{
-            origin = req.getPurchase()[0].getCancel_origin();
-        }
-        return origin;
-    }
-    
-   
-    private void populateMasterDtfFromReq(DailyTransFile dtf,MobitvReq req){
-        //Get Origin
-        dtf.setOrigin(this.getOrigin(req));
-        
-        dtf.setBsiOmniaSo(((Number)(req.getServiceOrder())).longValue());
+	@CrossOrigin
+	@RequestMapping(value = "/mobiSimulate", method = RequestMethod.POST)
+	@ResponseBody
+	public ProvMngrResponse mobiProvRequestValidator(@RequestHeader("provId") Integer provId,
+			@RequestBody MobitvReq inputPayload,
+			HttpServletResponse resp) {
+		// TODO: Implement the filter based blackout.
+		if (blackoutService.checkForBalckout("rest/mobiSimulate")) {
+			return new ProvMngrResponse(utils.getCurrentEpoch(), ProvMngrResponse.BLACKOUT, null, null,
+					ProvMngrResponse.FAIL_MSG, ProvMngrResponse.BLACKOUT_MSG, true);
+		}
 
-        //Get provId from reqInfo
-        dtf.setProvId(reqInfo.getProvId());
-        
-        dtf.setuId(this.getExternalId(req));
-        
-        dtf.setAccStatus(req.getStatus());
-        
-        dtf.setFipsCode(req.getFipsCode());
-        return;
-    }
-    private String getExternalId(MobitvReq req){
-        
-        String accId = req.getAccountCode();
-        Long locId = req.getLocationId();
-        if(locId==null){
-            return accId;
-        }else{
-            return accId.toString()+"-"+locId.toString();
-        }
-    }
-    private ProvMngrResponse mobiProvisioner(MobitvReq req,HttpServletResponse resp) {
-        try {
-            ResponseEntity<MobiResponse> response = processMobiRequest.processMobiRequest(req);
-            if(response.getStatusCode()!=HttpStatus.OK){
-                MobiResponse respRecieved = response.getBody();
-                            
-                String msgFailure = "Mobi Processing Failed. Error Code:"+respRecieved.getError_code()+
-                " Error Msg:"+respRecieved.getError_message()+
-                " Error Detail:"+respRecieved.getError_detail();
-                
-                InvalidRequest invalidReq = new InvalidRequest( msgFailure);
-                mobiHouseKeepingSer.houseKeepingUpdate(req, invalidReq,
-                        HouseKeepingErrorCodes.MOBI_PROCESSING_FAILED, 
-                        HouseKeepingStatusCodes.FAILED,reqInfo.getProvId());
-                resp.sendError(response.getStatusCode().value(),msgFailure);
-                return new  ProvMngrResponse(utils.getCurrentEpoch(), response.getStatusCode().value(), msgFailure, null, 
-                        msgFailure, ProvMngrResponse.MOBI,
-                        false) ; 
-                }else{
-                    
-                    //Update the DTF
-                    this.updateDtf(req, response);
-                }
-        } catch (ResourceAccessException e) {
-           log.error("Mobi PM- Mobi Server is down",e);
-           mobiHouseKeepingSer.houseKeepingUpdate(req, e,
-                    HouseKeepingErrorCodes.MOBI_DOWN, HouseKeepingStatusCodes.FAILED,reqInfo.getProvId());
-           resp.setStatus(HttpStatus.NOT_FOUND.value());           
-           return new  ProvMngrResponse(utils.getCurrentEpoch(), HttpStatus.NOT_FOUND.value(), ProvMngrResponse.MOBI_PROCESSING_FAILED, utils.exceptionStackTrace(e), "Mobi PM- Mobi Server is down", ProvMngrResponse.MOBI,
-                   false) ;
-        } catch (PersistenceException e) {
-            log.error("Processing failed with exception",e);
-            mobiHouseKeepingSer.houseKeepingUpdate(req, e,
-                    HouseKeepingErrorCodes.DB_UPDATED_FAILED, HouseKeepingStatusCodes.FAILED,reqInfo.getProvId());
-            resp.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());           
-            return new  ProvMngrResponse(utils.getCurrentEpoch(), HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage(), utils.exceptionStackTrace(e), "Mobi PM- PersistenceException:DB operation failed", ProvMngrResponse.MOBI,
-                    false) ;
-        }catch (InvalidRequest e) {
-           mobiHouseKeepingSer.houseKeepingUpdate(req, e,
-                    HouseKeepingErrorCodes.INVALID_REQUEST_OR_CONFIG, HouseKeepingStatusCodes.FAILED,reqInfo.getProvId());
-           resp.setStatus(HttpStatus.BAD_REQUEST.value());           
-           return new  ProvMngrResponse(utils.getCurrentEpoch(), HttpStatus.BAD_REQUEST.value(), ProvMngrResponse.MOBI_PROCESSING_FAILED, utils.exceptionStackTrace(e), "Mobi PM-"+e.getMessage(), ProvMngrResponse.MOBI,
-                   false) ;
-        } catch (InvalidConfig e) {
-           mobiHouseKeepingSer.houseKeepingUpdate(req, e,
-                    HouseKeepingErrorCodes.INTENAL_SERVER_ERROR, HouseKeepingStatusCodes.FAILED,reqInfo.getProvId());
-           resp.setStatus(HttpStatus.BAD_REQUEST.value());           
-           return new  ProvMngrResponse(utils.getCurrentEpoch(), HttpStatus.BAD_REQUEST.value(), ProvMngrResponse.MOBI_PROCESSING_FAILED, utils.exceptionStackTrace(e), "Mobi PM-"+e.getMessage(), ProvMngrResponse.MOBI,
-                   false) ;
-        }catch (Exception e) {
-            log.error("Processing failed with exception",  e);
-            mobiHouseKeepingSer.houseKeepingUpdate(req, e,
-                    HouseKeepingErrorCodes.INVALID_REQUEST_OR_CONFIG, HouseKeepingStatusCodes.FAILED,reqInfo.getProvId());
-            String errorMsg = e.getMessage();
-            if (errorMsg == null) {
-                errorMsg = "Exception doesn't have the error message. Please refer to the complete exception";
-            }
-            resp.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value()); 
-            return new  ProvMngrResponse(utils.getCurrentEpoch(), HttpStatus.INTERNAL_SERVER_ERROR.value(), errorMsg, utils.exceptionStackTrace(e), "Mobi PM-"+errorMsg, ProvMngrResponse.MOBI,
-                    false) ;           
-        }        
-        return new  ProvMngrResponse(utils.getCurrentEpoch(), HttpStatus.OK.value(), null, null, "Mobi provisioning successful", ProvMngrResponse.MOBI,
-                true) ;  
-    }
+		inputPayload.setIsValidationReq(true);
+		/*
+		 * Lets use orig req for all the read only txns with ApMax. maskedReq
+		 * would be used for all the write txns with ApMax. House Keeping would
+		 * be with orig request parameters.
+		 */
+		return receiveReqAndSetLoginfo(inputPayload, true,inputPayload.getServiceRequestItemId(),resp,provId);
+	}
+
+	private void validateServiceOrderItem(MobitvReq inputPayload){
+		Integer serviceRequestItemId = inputPayload.getServiceRequestItemId();
+		if(serviceRequestItemId==null){
+			log.error("Input payload is missing serviceRequestItemId field");
+			throw new InvalidRequest("Input payload is missing serviceRequestItemId field");            
+		}
+	}
+
+	private void validateQuantityFields(MobitvReq inputPayload){
+		Purchase[] purs = inputPayload.getPurchase();
+		for(int i=0;i<purs.length;i++){
+			String prodId = purs[i].getProduct_id();
+			if(quantityCompCodes.toUpperCase().contains(prodId.toUpperCase())){
+				Extended_property[] extProp = purs[i].getExtended_property();
+				String action = purs[i].getAction();
+				if(!action.equals(GlobalEnums.CANCEL.name().toLowerCase())){
+					if(null == extProp){
+						log.error("For quantity based comp code:"+prodId+", quantity is needed to provision");
+						throw new InvalidRequest("For quantity based comp code:"+prodId+", quantity is needed to provision");	
+					}
+					String qtyFldName = purs[i].getExtended_property()[0].getName();
+					String qtyFldVal = purs[i].getExtended_property()[0].getValue();
+					if(null == qtyFldName || !qtyFldName.equals(GlobalEnums.QUANTITY.name().toLowerCase())){
+						log.error("For quantity based comp code:"+prodId+", quantity is needed to provision");
+						throw new InvalidRequest("For quantity based comp code:"+prodId+", quantity is needed to provision");
+					}
+					if(null == qtyFldVal){
+						log.error("For quantity based comp code:"+prodId+", quantity is needed to provision");
+						throw new InvalidRequest("For quantity based comp code:"+prodId+", quantity is needed to provision");
+					}
+				}
+			}
+		}
+	}
+	private ProvMngrResponse receiveReqAndSetLoginfo(MobitvReq inputPayload, 
+			Boolean isValidateReq,Integer serviceRequestItemId,
+			HttpServletResponse resp,Integer provId) {       
+		reqInfo.setIsValidationReq(isValidateReq);
+		reqInfo.setProvId(provId);
+
+		this.populateLogginInfo(inputPayload);
+
+		log.info("Processing Started");
+		try{
+			this.validateServiceOrderItem(inputPayload);
+			this.validateQuantityFields(inputPayload);
+		}catch (InvalidRequest e) {
+			mobiHouseKeepingSer.houseKeepingUpdate(inputPayload, e,
+					HouseKeepingErrorCodes.INVALID_REQUEST_OR_CONFIG, HouseKeepingStatusCodes.FAILED,reqInfo.getProvId());
+			resp.setStatus(HttpStatus.BAD_REQUEST.value());           
+			this.clearLoggingInfo();
+			return new  ProvMngrResponse(utils.getCurrentEpoch(), HttpStatus.BAD_REQUEST.value(), ProvMngrResponse.MOBI_PROCESSING_FAILED, utils.exceptionStackTrace(e), "Mobi PM-"+e.getMessage(), ProvMngrResponse.MOBI,
+					false) ;
+		}
+
+		try {
+			return this.mobiProvisioner(inputPayload,resp);
+		} finally {
+			this.clearLoggingInfo();
+		}
+	}
+
+	private void populateLogginInfo(MobitvReq inputPayload) {
+		Boolean isValidationReq = reqInfo.getIsValidationReq();
+		if (isValidationReq == null) {
+			log.error("reqInfo needs to be set before populating logging info");
+			throw new ServerInternalError("reqInfo needs to be set before populating logging info");
+		}
+		Integer serviceOrder = inputPayload.getServiceOrder();
+
+		MDC.put("so", serviceOrder.toString());
+		MDC.put("SimMode", isValidationReq.toString());
+	}
+
+	private void clearLoggingInfo() {
+		MDC.remove("so");
+		MDC.remove("SimMode");
+	}
+
+	private void updateDtf(MobitvReq req,ResponseEntity<MobiResponse> response){       
+
+		//If its a simulation request, dont make dtf entry
+
+		Boolean isvalidationReq = reqInfo.getIsValidationReq();
+		if(isvalidationReq){
+			log.debug("DTF is not updated for validation requests");
+			return;
+		}
+
+		Long currentTime = System.currentTimeMillis();
+
+		MobiResponse mobiRespRecieved = response.getBody();
+		Purchase_response[] purResps = mobiRespRecieved.getPurchase_response();        
+		for(Purchase_response purResp:purResps){
+			DailyTransFile dtf = new DailyTransFile();
+			dtf.setTxnTime(currentTime);  
+			populateMasterDtfFromReq(dtf,req);
+			populateDtfFromPurchase(dtf,req,purResp);
+			dtfRepo.save(dtf);
+			log.trace("Dtf updated with:{}",dtf);
+		}   
+	}
+
+	private void populateDtfFromPurchase(DailyTransFile dtf,MobitvReq req,Purchase_response purResp){
+		String prodId=purResp.getProduct_id();
+		Long purchaseId = purResp.getPurchase_id();
+
+		String status = purResp.getStatus();
+		log.debug("prodId:{} purchaseId:{} status:{}",prodId,purchaseId,status);
+
+		dtf.setTxnId(purchaseId);
+		dtf.setProductId(prodId);
+		dtf.setTxnType(status);
+	}
+
+	private String getOrigin(MobitvReq req){
+		String action = req.getPurchase()[0].getAction();
+		String origin = null;
+		if(action.equals(WhatToDoWithComp.CREATE.name().toLowerCase())){
+			origin = req.getPurchase()[0].getPurchase_origin();    
+		}else{
+			origin = req.getPurchase()[0].getCancel_origin();
+		}
+		return origin;
+	}
+
+
+	private void populateMasterDtfFromReq(DailyTransFile dtf,MobitvReq req){
+		//Get Origin
+		dtf.setOrigin(this.getOrigin(req));
+
+		dtf.setBsiOmniaSo(((Number)(req.getServiceOrder())).longValue());
+
+		//Get provId from reqInfo
+		dtf.setProvId(reqInfo.getProvId());
+
+		dtf.setuId(this.getExternalId(req));
+
+		dtf.setAccStatus(req.getStatus());
+
+		dtf.setFipsCode(req.getFipsCode());
+		return;
+	}
+	private String getExternalId(MobitvReq req){
+
+		String accId = req.getAccountCode();
+		Long locId = req.getLocationId();
+		if(locId==null){
+			return accId;
+		}else{
+			return accId.toString()+"-"+locId.toString();
+		}
+	}
+	private ProvMngrResponse mobiProvisioner(MobitvReq req,HttpServletResponse resp) {
+		try {
+			ResponseEntity<MobiResponse> response = processMobiRequest.processMobiRequest(req);
+			if(response.getStatusCode()!=HttpStatus.OK){
+				MobiResponse respRecieved = response.getBody();
+
+				String msgFailure = "Mobi Processing Failed. Error Code:"+respRecieved.getError_code()+
+						" Error Msg:"+respRecieved.getError_message()+
+						" Error Detail:"+respRecieved.getError_detail();
+
+				InvalidRequest invalidReq = new InvalidRequest( msgFailure);
+				mobiHouseKeepingSer.houseKeepingUpdate(req, invalidReq,
+						HouseKeepingErrorCodes.MOBI_PROCESSING_FAILED, 
+						HouseKeepingStatusCodes.FAILED,reqInfo.getProvId());
+				resp.sendError(response.getStatusCode().value(),msgFailure);
+				return new  ProvMngrResponse(utils.getCurrentEpoch(), response.getStatusCode().value(), msgFailure, null, 
+						msgFailure, ProvMngrResponse.MOBI,
+						false) ; 
+			}else{
+
+				//Update the DTF
+				this.updateDtf(req, response);
+			}
+		} catch (ResourceAccessException e) {
+			log.error("Mobi PM- Mobi Server is down",e);
+			mobiHouseKeepingSer.houseKeepingUpdate(req, e,
+					HouseKeepingErrorCodes.MOBI_DOWN, HouseKeepingStatusCodes.FAILED,reqInfo.getProvId());
+			resp.setStatus(HttpStatus.NOT_FOUND.value());           
+			return new  ProvMngrResponse(utils.getCurrentEpoch(), HttpStatus.NOT_FOUND.value(), ProvMngrResponse.MOBI_PROCESSING_FAILED, utils.exceptionStackTrace(e), "Mobi PM- Mobi Server is down", ProvMngrResponse.MOBI,
+					false) ;
+		} catch (PersistenceException e) {
+			log.error("Processing failed with exception",e);
+			mobiHouseKeepingSer.houseKeepingUpdate(req, e,
+					HouseKeepingErrorCodes.DB_UPDATED_FAILED, HouseKeepingStatusCodes.FAILED,reqInfo.getProvId());
+			resp.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());           
+			return new  ProvMngrResponse(utils.getCurrentEpoch(), HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage(), utils.exceptionStackTrace(e), "Mobi PM- PersistenceException:DB operation failed", ProvMngrResponse.MOBI,
+					false) ;
+		}catch (InvalidRequest e) {
+			mobiHouseKeepingSer.houseKeepingUpdate(req, e,
+					HouseKeepingErrorCodes.INVALID_REQUEST_OR_CONFIG, HouseKeepingStatusCodes.FAILED,reqInfo.getProvId());
+			resp.setStatus(HttpStatus.BAD_REQUEST.value());           
+			return new  ProvMngrResponse(utils.getCurrentEpoch(), HttpStatus.BAD_REQUEST.value(), ProvMngrResponse.MOBI_PROCESSING_FAILED, utils.exceptionStackTrace(e), "Mobi PM-"+e.getMessage(), ProvMngrResponse.MOBI,
+					false) ;
+		} catch (InvalidConfig e) {
+			mobiHouseKeepingSer.houseKeepingUpdate(req, e,
+					HouseKeepingErrorCodes.INTENAL_SERVER_ERROR, HouseKeepingStatusCodes.FAILED,reqInfo.getProvId());
+			resp.setStatus(HttpStatus.BAD_REQUEST.value());           
+			return new  ProvMngrResponse(utils.getCurrentEpoch(), HttpStatus.BAD_REQUEST.value(), ProvMngrResponse.MOBI_PROCESSING_FAILED, utils.exceptionStackTrace(e), "Mobi PM-"+e.getMessage(), ProvMngrResponse.MOBI,
+					false) ;
+		}catch (Exception e) {
+			log.error("Processing failed with exception",  e);
+			mobiHouseKeepingSer.houseKeepingUpdate(req, e,
+					HouseKeepingErrorCodes.INVALID_REQUEST_OR_CONFIG, HouseKeepingStatusCodes.FAILED,reqInfo.getProvId());
+			String errorMsg = e.getMessage();
+			if (errorMsg == null) {
+				errorMsg = "Exception doesn't have the error message. Please refer to the complete exception";
+			}
+			resp.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value()); 
+			return new  ProvMngrResponse(utils.getCurrentEpoch(), HttpStatus.INTERNAL_SERVER_ERROR.value(), errorMsg, utils.exceptionStackTrace(e), "Mobi PM-"+errorMsg, ProvMngrResponse.MOBI,
+					false) ;           
+		}        
+		return new  ProvMngrResponse(utils.getCurrentEpoch(), HttpStatus.OK.value(), null, null, "Mobi provisioning successful", ProvMngrResponse.MOBI,
+				true) ;  
+	}
 
 }

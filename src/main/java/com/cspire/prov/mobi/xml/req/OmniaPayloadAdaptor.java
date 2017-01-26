@@ -72,7 +72,7 @@ public class OmniaPayloadAdaptor {
 
 		mobitvReq.setStatus(
 				getMobiAccStatus(req).getStrVal());
-		
+
 		return mobitvReq;        
 	}
 
@@ -148,13 +148,13 @@ public class OmniaPayloadAdaptor {
 		}
 		return null;
 	}
-	
+
 	private Purchase[] getIptvChannelList(REQUEST req) {
 		List<FEATURE> featureList = req.getSERVICE().getITEM().getFEATURE();
 		ArrayList<Purchase> purchaseList = new ArrayList<Purchase>();
-		
+
 		MobiAccStatus accStatus = getMobiAccStatus(req);
-		
+
 		for (FEATURE feature : featureList) {
 			WhatToDoWithComp action = this.whatToDoWithComponent(feature);
 			switch(action){
@@ -185,8 +185,8 @@ public class OmniaPayloadAdaptor {
 		}else{
 			log.info("Suspend transation, DVR qty wont be updated");
 		}
-		
-		
+
+
 		purchase=getStreamQtyPurchase(req,accStatus);
 		if(null != purchase){
 			purchaseList.add(purchase);
@@ -198,9 +198,9 @@ public class OmniaPayloadAdaptor {
 
 	private Purchase getDvrQtyPurchase(REQUEST req,MobiAccStatus accStatus){
 		Integer dvrQty = this.getDvrQuantity(req);
-		
-		
-		
+
+
+
 		Purchase purchase = null;
 		if(null != dvrQty){
 			purchase=this.createQtyPurchase(this.dvrCode,dvrQty.toString());
@@ -211,7 +211,7 @@ public class OmniaPayloadAdaptor {
 
 	private Purchase getStreamQtyPurchase(REQUEST req,MobiAccStatus accStatus){
 		Integer strmQty = this.getStreamQuantity(req);
-		
+
 		Purchase purchase = null;
 		if(null != strmQty){
 			purchase=this.createQtyPurchase(this.streamCode,strmQty.toString());
@@ -223,14 +223,20 @@ public class OmniaPayloadAdaptor {
 	private Purchase createQtyPurchase(String comp,String qty){
 		Purchase purchase = new Purchase();
 		purchase.setProduct_id(comp);
-		purchase.setAction(GlobalEnums.CREATE.name().toLowerCase());
+		Integer qtyInt = Integer.parseInt(qty);
 
-		Extended_property[] extPropArray = new Extended_property[1];
-		purchase.setExtended_property(extPropArray);
+		if(qtyInt == 0){
+			purchase.setAction(GlobalEnums.CANCEL.name().toLowerCase());
+		}else{
+			purchase.setAction(GlobalEnums.CREATE.name().toLowerCase());			
+			Extended_property[] extPropArray = new Extended_property[1];
+			purchase.setExtended_property(extPropArray);
+			extPropArray[0] = new Extended_property();
+			extPropArray[0].setName(GlobalEnums.QUANTITY.name().toLowerCase());
+			extPropArray[0].setValue(qty);
 
-		extPropArray[0] = new Extended_property();
-		extPropArray[0].setName(GlobalEnums.QUANTITY.name().toLowerCase());
-		extPropArray[0].setValue(qty);
+		}
+
 		return purchase;   	
 	}
 
@@ -244,7 +250,7 @@ public class OmniaPayloadAdaptor {
 
 	private WhatToDoWithComp whatToDoWithComponent(FEATURE feature){
 
-		
+
 		if(feature.getACTION().equals("D")){
 			log.info("ACTION:{}, Hence COMPONENTCODE:{} would be deleted from mobi", 
 					feature.getACTION(),feature.getCOMPONENTCODE());
@@ -306,27 +312,27 @@ public class OmniaPayloadAdaptor {
 		}
 		return retVal;
 	}
-	
-    private Boolean isActiveComponent(FEATURE feature){
-        
-        String strDeactDate = feature.getDEACTIVATIONDATE();
-        Date deactDate = null;
-        SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yyyy");
-        if(strDeactDate!=null && !strDeactDate.equals("")){            
-            deactDate = UtilFuncs.stringToDate(strDeactDate);
-            Date todayDate = UtilFuncs.todayDate();
-            if(deactDate.compareTo(todayDate)<=0){
-                log.info("DEACTIVATIONDATE:{} <= today's date:{} for COMPONENTCODE:{}."
-                        + "Hence it wont be provisioned", 
-                        feature.getDEACTIVATIONDATE(),formatter.format(todayDate),feature.getCOMPONENTCODE());
-                return false;
-            }else{
-                log.info("DEACTIVATIONDATE:{} > today's date:{} for COMPONENTCODE:{}."
-                        + "Hence component code would be used for provisioning", 
-                        feature.getDEACTIVATIONDATE(),formatter.format(todayDate),feature.getCOMPONENTCODE());
-            }
-        }
-        return true;
-    }
-    
+
+	private Boolean isActiveComponent(FEATURE feature){
+
+		String strDeactDate = feature.getDEACTIVATIONDATE();
+		Date deactDate = null;
+		SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yyyy");
+		if(strDeactDate!=null && !strDeactDate.equals("")){            
+			deactDate = UtilFuncs.stringToDate(strDeactDate);
+			Date todayDate = UtilFuncs.todayDate();
+			if(deactDate.compareTo(todayDate)<=0){
+				log.info("DEACTIVATIONDATE:{} <= today's date:{} for COMPONENTCODE:{}."
+						+ "Hence it wont be provisioned", 
+						feature.getDEACTIVATIONDATE(),formatter.format(todayDate),feature.getCOMPONENTCODE());
+				return false;
+			}else{
+				log.info("DEACTIVATIONDATE:{} > today's date:{} for COMPONENTCODE:{}."
+						+ "Hence component code would be used for provisioning", 
+						feature.getDEACTIVATIONDATE(),formatter.format(todayDate),feature.getCOMPONENTCODE());
+			}
+		}
+		return true;
+	}
+
 }
