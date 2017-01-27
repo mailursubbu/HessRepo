@@ -116,15 +116,25 @@ public class OmniaPayloadAdaptor {
 	}
 
 	private Integer getCompQuantity(REQUEST req, String inputCompCode){
+		String activity = req.getSERVICE().getACTIVITY();
+		
+		
+		
 		List<COMPONENT> comps = req.getSERVICE().getITEM().getQUANTITYBASED().getCOMPONENT();
 		for(COMPONENT comp:comps){
 
 			//String compCode = comp.getACTIVATIONDATE();
 			String compCode = comp.getCOMPONENTCODE();
 			if(compCode.equals(inputCompCode)){
-				if(comp.getACTION().equals("X")){
+				if(comp.getACTION().equals("X") &&
+						!activity.equals("S") &&
+						!activity.equals("SR")){
 					log.trace("{} is X, hence quantity would be returned as null",compCode);
 					return null;
+				}
+				if(activity.equals("S") ||
+						activity.equals("SR")){
+					log.trace("As activity is set to \"S\" OR \"SR\", feature code with X would also be considered for cancellation");
 				}
 				return (int) comp.getQUANTITY();
 			}
@@ -139,7 +149,7 @@ public class OmniaPayloadAdaptor {
 		MobiAccStatus accStatus = getMobiAccStatus(req);
 
 		for (FEATURE feature : featureList) {
-			WhatToDoWithComp action = this.whatToDoWithComponent(feature);
+			WhatToDoWithComp action = this.whatToDoWithComponent(req,feature);
 			switch(action){
 			case CREATE:
 			case CANCEL:
@@ -157,7 +167,8 @@ public class OmniaPayloadAdaptor {
 		//Non-suspend and non-resume operations will only alter DVR.
 		//For suspend and resume,  DVR wont be changed.
 		String operation = req.getSERVICE().getACTIVITY();
-		if(!operation.equals("NS") &&
+		if(!operation.equals("S") &&
+				!operation.equals("NS") &&
 				!operation.equals("NR")){
 			purchase=getDvrQtyPurchase(req,accStatus);
 			if(null != purchase){
@@ -231,9 +242,19 @@ public class OmniaPayloadAdaptor {
 		return purchase;
 	}
 
-	private WhatToDoWithComp whatToDoWithComponent(FEATURE feature){
+	private WhatToDoWithComp whatToDoWithComponent(REQUEST req,FEATURE feature){
 
-
+		String operation = req.getSERVICE().getACTIVITY();
+		if(operation.equals("S")){
+			log.info("Service Actity is \"S\", hence all the comp codes would be cancelled" );
+			return WhatToDoWithComp.CANCEL;
+		}
+		
+		if(operation.equals("SR")){
+			log.info("Service Actity is \"SR\", hence all the comp codes would be created" );
+			return WhatToDoWithComp.CREATE;
+		}
+		
 		if(feature.getACTION().equals("D")){
 			log.info("ACTION:{}, Hence COMPONENTCODE:{} would be deleted from mobi", 
 					feature.getACTION(),feature.getCOMPONENTCODE());
