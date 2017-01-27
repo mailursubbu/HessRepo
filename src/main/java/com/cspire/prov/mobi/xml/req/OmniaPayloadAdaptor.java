@@ -218,7 +218,7 @@ public class OmniaPayloadAdaptor {
 		if(operation.equals("D") ||
 				operation.equals("ND") ||
 				operation.equals("S") ||
-				!operation.equals("NS")){
+				operation.equals("NS")){
 			log.trace("Disconnect and Suspend operations needs cancel action for quantity fields");
 			return GlobalEnums.CANCEL;
 		}else{
