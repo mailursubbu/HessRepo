@@ -97,16 +97,8 @@ public class OmniaPayloadAdaptor {
 	}
 
 
-	private Integer getDvrQuantity(REQUEST req){
-		String operation = req.getSERVICE().getACTIVITY();
-		Integer qnt = null;
-		if(operation.equals("D") ||
-				operation.equals("ND")){
-			log.info("Disconnect operation, DVR would be set to 0");
-			qnt = 0;
-		}else{
-			qnt = getCompQuantity( req,  this.dvrCode);
-		}
+	private Integer getDvrQuantity(REQUEST req){		
+		Integer qnt = getCompQuantity( req,  this.dvrCode);
 		if(qnt!=null){
 			log.trace("{} Dvr={}",dvrCode,qnt);
 		}
@@ -115,17 +107,8 @@ public class OmniaPayloadAdaptor {
 	}
 
 	private Integer getStreamQuantity(REQUEST req){
-		String operation = req.getSERVICE().getACTIVITY();
-		Integer qnt =  null;
-		if(operation.equals("D") ||
-				operation.equals("ND") ||
-				operation.equals("S") ||
-				operation.equals("NS")){
-			qnt = 0;
-			log.info("For Suspend/Disconnect request, stream qty would be set to 0");
-		}else{
-			qnt =  getCompQuantity( req,  this.streamCode);
-		}
+
+		Integer qnt =  getCompQuantity( req,  this.streamCode);
 		if(qnt!=null){
 			log.trace("{} Stream={}",streamCode,qnt);
 		}
@@ -198,12 +181,9 @@ public class OmniaPayloadAdaptor {
 
 	private Purchase getDvrQtyPurchase(REQUEST req,MobiAccStatus accStatus){
 		Integer dvrQty = this.getDvrQuantity(req);
-
-
-
 		Purchase purchase = null;
 		if(null != dvrQty){
-			purchase=this.createQtyPurchase(this.dvrCode,dvrQty.toString());
+			purchase=this.createQtyPurchase(req,this.dvrCode,dvrQty.toString());
 			purchase.setReason_code(accStatus.getStrVal());
 		}
 		return purchase;
@@ -214,32 +194,37 @@ public class OmniaPayloadAdaptor {
 
 		Purchase purchase = null;
 		if(null != strmQty){
-			purchase=this.createQtyPurchase(this.streamCode,strmQty.toString());
+			purchase=this.createQtyPurchase(req,this.streamCode,strmQty.toString());
 			purchase.setReason_code(accStatus.getStrVal());
 		}
 		return purchase;
 	}
 
-	private Purchase createQtyPurchase(String comp,String qty){
+	private Purchase createQtyPurchase(REQUEST req,String comp,String qty){
 		Purchase purchase = new Purchase();
 		purchase.setProduct_id(comp);
-		Integer qtyInt = Integer.parseInt(qty);
-
-		if(qtyInt == 0){
-			purchase.setAction(GlobalEnums.CANCEL.name().toLowerCase());
-		}else{
-			purchase.setAction(GlobalEnums.CREATE.name().toLowerCase());			
-			Extended_property[] extPropArray = new Extended_property[1];
-			purchase.setExtended_property(extPropArray);
-			extPropArray[0] = new Extended_property();
-			extPropArray[0].setName(GlobalEnums.QUANTITY.name().toLowerCase());
-			extPropArray[0].setValue(qty);
-
-		}
-
+		GlobalEnums action = getActionForMobi(req);
+		purchase.setAction(action.name().toLowerCase());			
+		Extended_property[] extPropArray = new Extended_property[1];
+		purchase.setExtended_property(extPropArray);
+		extPropArray[0] = new Extended_property();
+		extPropArray[0].setName(GlobalEnums.QUANTITY.name().toLowerCase());
+		extPropArray[0].setValue(qty);
 		return purchase;   	
 	}
 
+	private GlobalEnums getActionForMobi(REQUEST req){
+		String operation = req.getSERVICE().getACTIVITY();
+		if(operation.equals("D") ||
+				operation.equals("ND") ||
+				operation.equals("S") ||
+				!operation.equals("NS")){
+			log.trace("Disconnect and Suspend operations needs cancel action for quantity fields");
+			return GlobalEnums.CANCEL;
+		}else{
+			return GlobalEnums.CREATE;
+		}		
+	}
 	private Purchase createMobiPurchase(FEATURE feature,WhatToDoWithComp action,MobiAccStatus reasonCode){
 		Purchase purchase = new Purchase();
 		purchase.setProduct_id(feature.getCOMPONENTCODE().trim());
