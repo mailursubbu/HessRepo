@@ -157,10 +157,8 @@ public class OmniaPayloadAdaptor {
 		//Non-suspend and non-resume operations will only alter DVR.
 		//For suspend and resume,  DVR wont be changed.
 		String operation = req.getSERVICE().getACTIVITY();
-		if(!operation.equals("S") &&
-				!operation.equals("NS") &&
-				!operation.equals("NR") &&
-				!operation.equals("R")){
+		if(!operation.equals("NS") &&
+				!operation.equals("NR")){
 			purchase=getDvrQtyPurchase(req,accStatus);
 			if(null != purchase){
 				purchaseList.add(purchase);
