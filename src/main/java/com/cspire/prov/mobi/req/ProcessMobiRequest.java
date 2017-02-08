@@ -89,7 +89,7 @@ public class ProcessMobiRequest {
             String sig = genApiSig.generateSig(externalId);            
             ResponseEntity<MobiResponse> response = mobiRestTemplate.exchange(
                     mobiEndpoint, HttpMethod.POST, entity,
-                    MobiResponse.class,mobiOperator,mobiBillingSystem,
+                    MobiResponse.class,
                     externalId,mobiPartner,System.currentTimeMillis()/1000L,sig);    
             return response;
     }

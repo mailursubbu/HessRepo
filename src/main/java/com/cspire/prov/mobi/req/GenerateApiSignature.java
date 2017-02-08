@@ -25,6 +25,13 @@ public class GenerateApiSignature {
     @Value("${mobi.secretKey}")
     String mobiSecretKey;
     
+    /*
+    mobi.partner=cspire
+    		mobi.operator=cspire
+    		mobi.secretKey="0f0d4f0e3d501af466f1d59831a7bbc440292c6d"
+    		mobi.billingSystem=Omnia
+    		mobi.partnerId=cspire
+    	*/	
     private String bytesToHex(byte[] bytes) {
         char[] hexChars = new char[bytes.length * 2];
         for (int j = 0; j < bytes.length; j++) {
