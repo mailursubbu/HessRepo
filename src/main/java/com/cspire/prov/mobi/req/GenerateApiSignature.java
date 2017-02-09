@@ -67,7 +67,7 @@ public class GenerateApiSignature {
          * 
          */
         String mobiEndpoint = mobiProvPath.replace("{external_id}", exterrnalId);
-        long ts = System.currentTimeMillis();
+        long ts = System.currentTimeMillis()/1000L;
         return generateSig(mobiEndpoint, ts);        
     }
 }
