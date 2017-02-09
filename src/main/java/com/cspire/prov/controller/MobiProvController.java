@@ -243,7 +243,10 @@ public class MobiProvController {
 		Long currentTime = System.currentTimeMillis();
 
 		MobiResponse mobiRespRecieved = response.getBody();
-		Purchase_response[] purResps = mobiRespRecieved.getPurchase_response();        
+		Purchase_response[] purResps = mobiRespRecieved.getPurchase_response();
+		if(null == purResps){
+			return;
+		}
 		for(Purchase_response purResp:purResps){
 			DailyTransFile dtf = new DailyTransFile();
 			dtf.setTxnTime(currentTime);  
