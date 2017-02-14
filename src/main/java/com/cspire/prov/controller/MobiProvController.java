@@ -290,23 +290,14 @@ public class MobiProvController {
 		//Get provId from reqInfo
 		dtf.setProvId(reqInfo.getProvId());
 
-		dtf.setuId(this.getExternalId(req));
+		dtf.setuId(req.getAccountCode());
 
 		dtf.setAccStatus(req.getStatus());
 
 		dtf.setFipsCode(req.getFipsCode());
 		return;
 	}
-	private String getExternalId(MobitvReq req){
-
-		String accId = req.getAccountCode();
-		Long locId = req.getLocationId();
-		if(locId==null){
-			return accId;
-		}else{
-			return accId.toString()+"-"+locId.toString();
-		}
-	}
+	
 	private ProvMngrResponse mobiProvisioner(MobitvReq req,HttpServletResponse resp) {
 		try {
 			ResponseEntity<MobiResponse> response = processMobiRequest.processMobiRequest(req);
