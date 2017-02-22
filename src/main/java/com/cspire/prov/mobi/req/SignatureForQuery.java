@@ -11,12 +11,12 @@ import org.springframework.stereotype.Component;
 import com.cspire.prov.framework.exceptions.InvalidConfig;
 
 @Component
-public class GenerateApiSignature {
+public class SignatureForQuery {
 
-    private static final Logger log = LoggerFactory.getLogger(GenerateApiSignature.class);
+    private static final Logger log = LoggerFactory.getLogger(SignatureForQuery.class);
     final protected static char[] hexArray = "0123456789ABCDEF".toCharArray();
 
-    @Value("${mobi.path}")
+    @Value("${mobi.query.path}")
     String mobiProvPath;
     
     @Value("${mobi.partnerId}")

@@ -10,4 +10,12 @@ public class GenerateApiSignatureConfig {
                 new GenerateApiSignature();
         return genApiSig;
     }
+    
+    @Bean
+    public SignatureForQuery querySig(){
+    	SignatureForQuery genApiSig =
+                new SignatureForQuery();
+        return genApiSig;
+    }
+    
 }

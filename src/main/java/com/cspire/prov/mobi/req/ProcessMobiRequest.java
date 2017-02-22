@@ -1,6 +1,5 @@
 package com.cspire.prov.mobi.req;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.slf4j.Logger;
@@ -16,7 +15,6 @@ import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-import com.cspire.prov.framework.global.constants.MobiAccStatus;
 import com.cspire.prov.framework.model.mobi.MobiReqPayload;
 import com.cspire.prov.framework.model.mobi.MobiResponse;
 import com.cspire.prov.framework.model.mobi.MobitvReq;
@@ -34,11 +32,18 @@ public class ProcessMobiRequest {
     GenerateApiSignature genApiSig;
     
     @Autowired
+    SignatureForQuery querySig;
+    
+    @Autowired
     ReqInfo reqInfo;
     
     @Value("${mobi.endpoint}")
     private String mobiEndpoint;
 
+    @Value("${mobi.query.endpoint}")
+    private String mobiQueryEndpoint;
+
+    
     @Value("${mobi.operator}")
     private String mobiOperator;
     @Value("${mobi.billingSystem}")
@@ -86,13 +91,26 @@ public class ProcessMobiRequest {
     public ResponseEntity<MobiResponse>  processMobiRequest(MobitvReq req) {       
             HttpEntity<Object> entity = prepareRpcEntity(req);
             String externalId = req.getAccountCode().trim();
-            String sig = genApiSig.generateSig(externalId);            
+            long ts = System.currentTimeMillis()/1000L;
+            String sig = genApiSig.generateSigWithTs(externalId,ts);            
             ResponseEntity<MobiResponse> response = mobiRestTemplate.exchange(
                     mobiEndpoint, HttpMethod.POST, entity,
                     MobiResponse.class,
-                    externalId,mobiPartner,System.currentTimeMillis()/1000L,sig);    
+                    externalId,mobiPartner,ts,sig);    
             return response;
     }
+    
+    @Retryable
+    public ResponseEntity<Object>  processMobiQueryRequest(String accCode) { 
+            long ts = System.currentTimeMillis()/1000L;
+            String sig = querySig.generateSigWithTs(accCode,ts);            
+            ResponseEntity<Object> response = mobiRestTemplate.exchange(
+            		mobiQueryEndpoint, HttpMethod.GET, null,
+                    Object.class,
+                    accCode,mobiPartner,ts,sig);    
+            return response;
+    }
+    
     
     private HttpEntity<Object> prepareRpcEntity(MobitvReq req) {
         HttpHeaders headers = new HttpHeaders();

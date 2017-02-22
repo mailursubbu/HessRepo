@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -77,8 +78,20 @@ public class MobiProvController {
 	@Value("${mobi.config.quantity.compcodes}")
 	String quantityCompCodes;
 
-
+	
 	@CrossOrigin
+	@RequestMapping(value = "/mobi/query/{accCode}", method = RequestMethod.GET)
+	@ResponseBody
+	public Object mobiQuery(@PathVariable String accCode) throws IOException {
+		if (blackoutService.checkForBalckout("rest//mobi/query")) {
+			return new ProvMngrResponse(utils.getCurrentEpoch(), ProvMngrResponse.BLACKOUT, null, null,
+					ProvMngrResponse.FAIL_MSG, ProvMngrResponse.BLACKOUT_MSG, true);
+		}          
+		ResponseEntity<Object> queryResp = processMobiRequest.processMobiQueryRequest(accCode);
+		return queryResp.getBody();
+
+	}
+
 	@RequestMapping(value = "/mobi/omnia", method = RequestMethod.POST)
 	@ResponseBody
 	public ProvMngrResponse mobiForOmniaProcessor(@RequestBody RawXmlStringPayload xmlRequest,
@@ -94,7 +107,7 @@ public class MobiProvController {
 				resp,
 				Defaults.DEFAULT_PROV_ID);
 	}
-
+	
 	@CrossOrigin
 	@RequestMapping(value = "/mobi/omniaSimulate", method = RequestMethod.POST)
 	@ResponseBody
@@ -113,6 +126,8 @@ public class MobiProvController {
 	}
 
 
+	
+	
 	@CrossOrigin
 	@RequestMapping(value = "/mobi", method = RequestMethod.POST)
 	@ResponseBody
