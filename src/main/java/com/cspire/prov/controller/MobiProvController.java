@@ -78,6 +78,8 @@ public class MobiProvController {
 	@Value("${mobi.config.quantity.compcodes}")
 	String quantityCompCodes;
 
+	@Autowired
+	HttpServletResponse resp;
 	
 	@CrossOrigin
 	@RequestMapping(value = "/mobi/query/{accCode}", method = RequestMethod.GET)
@@ -88,8 +90,8 @@ public class MobiProvController {
 					ProvMngrResponse.FAIL_MSG, ProvMngrResponse.BLACKOUT_MSG, true);
 		}          
 		ResponseEntity<Object> queryResp = processMobiRequest.processMobiQueryRequest(accCode);
+		resp.setStatus(queryResp.getStatusCode().value());
 		return queryResp.getBody();
-
 	}
 
 	@RequestMapping(value = "/mobi/omnia", method = RequestMethod.POST)
