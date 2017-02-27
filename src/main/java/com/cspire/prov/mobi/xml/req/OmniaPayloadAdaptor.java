@@ -287,11 +287,11 @@ public class OmniaPayloadAdaptor {
 		case "D":
 		case "ND":
 			log.trace("Processing Terminate request ");
-			retVal = MobiAccStatus.TERMINATED;
+			retVal = MobiAccStatus.DISCONNECT;
 			break;
 		case "S":
 			log.trace("Processing Suspend request ");
-			retVal = MobiAccStatus.SUSPENDED;
+			retVal = MobiAccStatus.SUSPEND;
 			break;
 		case "R":
 		case "NR":
