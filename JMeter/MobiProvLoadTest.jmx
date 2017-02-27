@@ -13,16 +13,6 @@
     <hashTree>
       <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
         <collectionProp name="Arguments.arguments">
-          <elementProp name="accCodeFile" elementType="Argument">
-            <stringProp name="Argument.name">accCodeFile</stringProp>
-            <stringProp name="Argument.value">C:\Users\nm_su\Projects\provisioning\mobipm\JMeter\accCode.txt</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="pkgFile" elementType="Argument">
-            <stringProp name="Argument.name">pkgFile</stringProp>
-            <stringProp name="Argument.value">C:\Users\nm_su\Projects\provisioning\mobipm\JMeter\pkg2.txt</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
           <elementProp name="ThreadCnt" elementType="Argument">
             <stringProp name="Argument.name">ThreadCnt</stringProp>
             <stringProp name="Argument.value">1</stringProp>
@@ -33,25 +23,43 @@
             <stringProp name="Argument.value">1</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
-          <elementProp name="serverName" elementType="Argument">
-            <stringProp name="Argument.name">serverName</stringProp>
-            <stringProp name="Argument.value">intomprov.cspire.net</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="protocol" elementType="Argument">
-            <stringProp name="Argument.name">protocol</stringProp>
-            <stringProp name="Argument.value">https</stringProp>
-            <stringProp name="Argument.metadata">=</stringProp>
-          </elementProp>
-          <elementProp name="serverPort" elementType="Argument">
-            <stringProp name="Argument.name">serverPort</stringProp>
-            <stringProp name="Argument.value">8501</stringProp>
+          <elementProp name="accCodeStartSeq" elementType="Argument">
+            <stringProp name="Argument.name">accCodeStartSeq</stringProp>
+            <stringProp name="Argument.value">746002</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="bsiOrderNumStart" elementType="Argument">
             <stringProp name="Argument.name">bsiOrderNumStart</stringProp>
-            <stringProp name="Argument.value">5649</stringProp>
+            <stringProp name="Argument.value">5681</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="serverName" elementType="Argument">
+            <stringProp name="Argument.name">serverName</stringProp>
+            <stringProp name="Argument.value">localhost</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+            <stringProp name="Argument.desc">intomprov.cspire.net</stringProp>
+          </elementProp>
+          <elementProp name="protocol" elementType="Argument">
+            <stringProp name="Argument.name">protocol</stringProp>
+            <stringProp name="Argument.value">http</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+            <stringProp name="Argument.desc">https</stringProp>
+          </elementProp>
+          <elementProp name="serverPort" elementType="Argument">
+            <stringProp name="Argument.name">serverPort</stringProp>
+            <stringProp name="Argument.value">8500</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="pkgFile" elementType="Argument">
+            <stringProp name="Argument.name">pkgFile</stringProp>
+            <stringProp name="Argument.value">C:\Users\nm_su\Projects\provisioning\mobipm\JMeter\pkg2.txt</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="accCodeFile" elementType="Argument">
+            <stringProp name="Argument.name">accCodeFile</stringProp>
+            <stringProp name="Argument.value">C:\Users\nm_su\Projects\provisioning\mobipm\JMeter\accCode.txt</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+            <stringProp name="Argument.desc">Not used. If you wish to read the account codes from file, use this one and delete the AccNumSeq related settings</stringProp>
           </elementProp>
         </collectionProp>
       </Arguments>
@@ -76,6 +84,15 @@
           <stringProp name="LoopController.loops">${PerThreadLoopCnt}</stringProp>
         </LoopController>
         <hashTree>
+          <CounterConfig guiclass="CounterConfigGui" testclass="CounterConfig" testname="AccNumSeq" enabled="true">
+            <stringProp name="CounterConfig.start">${accCodeStartSeq}</stringProp>
+            <stringProp name="CounterConfig.end"></stringProp>
+            <stringProp name="CounterConfig.incr">1</stringProp>
+            <stringProp name="CounterConfig.name">AccNumSeq</stringProp>
+            <stringProp name="CounterConfig.format"></stringProp>
+            <boolProp name="CounterConfig.per_user">false</boolProp>
+          </CounterConfig>
+          <hashTree/>
           <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="pkgFile" enabled="true">
             <stringProp name="filename">${pkgFile}</stringProp>
             <stringProp name="fileEncoding"></stringProp>
@@ -114,7 +131,7 @@
                 <elementProp name="" elementType="HTTPArgument">
                   <boolProp name="HTTPArgument.always_encode">false</boolProp>
                   <stringProp name="Argument.value">{  &#xd;
-      &quot;accountCode&quot;:&quot;${accCode}&quot;,&#xd;
+      &quot;accountCode&quot;:&quot;${AccNumSeq}&quot;,&#xd;
       &quot;bsiOrderNumber&quot;:${bsiorderNum},&#xd;
       &quot;origin&quot;:&quot;Subra&quot;,&#xd;
       &quot;type&quot;:&quot;A&quot;,&#xd;
@@ -178,7 +195,7 @@
                 <elementProp name="" elementType="HTTPArgument">
                   <boolProp name="HTTPArgument.always_encode">false</boolProp>
                   <stringProp name="Argument.value">{  &#xd;
-      &quot;accountCode&quot;:&quot;${accCode}&quot;,&#xd;
+      &quot;accountCode&quot;:&quot;${AccNumSeq}&quot;,&#xd;
       &quot;bsiOrderNumber&quot;:${__longSum(${bsiorderNum},1,cancelBsiOrderNum)},&#xd;
       &quot;origin&quot;:&quot;Subra&quot;,&#xd;
       &quot;type&quot;:&quot;C&quot;,&#xd;

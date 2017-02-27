@@ -15,6 +15,7 @@ import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import com.cspire.prov.framework.model.mobi.Account;
 import com.cspire.prov.framework.model.mobi.MobiReqPayload;
 import com.cspire.prov.framework.model.mobi.MobiResponse;
 import com.cspire.prov.framework.model.mobi.MobitvReq;
@@ -78,11 +79,14 @@ public class ProcessMobiRequest {
     }
         
     private MobiReqPayload generateMobiPayload(MobitvReq req) {
-        MobiReqPayload mobiReq = new MobiReqPayload();
+    	Account account  = new Account();
+    	account.setStatus(req.getStatus());
+        account.setFips_code(req.getFipsCode());
+        
+    	MobiReqPayload mobiReq = new MobiReqPayload();
         this.updateVerndorPurchaseIdAndOrigin(req);
         mobiReq.setPurchase(req.getPurchase());   
-        mobiReq.setStatus(req.getStatus());
-        mobiReq.setFips_code(req.getFipsCode());
+        mobiReq.setAccount(account);
         return mobiReq;
     }
 
