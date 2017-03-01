@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.retry.annotation.Retryable;
@@ -100,9 +101,26 @@ public class ProcessMobiRequest {
             ResponseEntity<MobiResponse> response = mobiRestTemplate.exchange(
                     mobiEndpoint, HttpMethod.POST, entity,
                     MobiResponse.class,
-                    externalId,mobiPartner,ts,sig);    
+                    externalId,mobiPartner,ts,sig);  
+
+            /*
+             * Temporary code. To be removed on fixing mobi bug
+             */
+            HttpStatus  status = response.getStatusCode();
+            if(status == HttpStatus.NOT_FOUND){
+            	if(response.getBody() != null){
+            		log.error("Temporary fix to change 404 status returned from Mobi Server to 400 status.");
+                	ResponseEntity<MobiResponse> newResp = new ResponseEntity<MobiResponse>(response.getBody(),response.getHeaders(),HttpStatus.BAD_REQUEST);
+                	return newResp;	
+            	}
+            }
+            /*
+             * End of temporary code
+             */
+            
             return response;
     }
+    
     
     @Retryable
     public ResponseEntity<Object>  processMobiQueryRequest(String accCode) { 
