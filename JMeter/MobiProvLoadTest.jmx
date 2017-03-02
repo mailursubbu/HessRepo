@@ -20,24 +20,24 @@
           </elementProp>
           <elementProp name="PerThreadLoopCnt" elementType="Argument">
             <stringProp name="Argument.name">PerThreadLoopCnt</stringProp>
-            <stringProp name="Argument.value">1</stringProp>
+            <stringProp name="Argument.value">10</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="accCodeStartSeq" elementType="Argument">
             <stringProp name="Argument.name">accCodeStartSeq</stringProp>
-            <stringProp name="Argument.value">746002</stringProp>
+            <stringProp name="Argument.value">747002</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="bsiOrderNumStart" elementType="Argument">
             <stringProp name="Argument.name">bsiOrderNumStart</stringProp>
-            <stringProp name="Argument.value">5681</stringProp>
+            <stringProp name="Argument.value">6681</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="serverName" elementType="Argument">
             <stringProp name="Argument.name">serverName</stringProp>
             <stringProp name="Argument.value">localhost</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
-            <stringProp name="Argument.desc">intomprov.cspire.net</stringProp>
+            <stringProp name="Argument.desc">intomprov.cspire.net or 10.102.0.245</stringProp>
           </elementProp>
           <elementProp name="protocol" elementType="Argument">
             <stringProp name="Argument.name">protocol</stringProp>
@@ -147,7 +147,6 @@
             &quot;productId&quot;:&quot;${pkg2}&quot;&#xd;
          }      &#xd;
       ]&#xd;
-&#xd;
 }</stringProp>
                   <stringProp name="Argument.metadata">=</stringProp>
                 </elementProp>
@@ -184,7 +183,7 @@
             </HeaderManager>
             <hashTree/>
           </hashTree>
-          <ConstantTimer guiclass="ConstantTimerGui" testclass="ConstantTimer" testname="Constant Timer" enabled="true">
+          <ConstantTimer guiclass="ConstantTimerGui" testclass="ConstantTimer" testname="Constant Timer" enabled="false">
             <stringProp name="ConstantTimer.delay">300</stringProp>
           </ConstantTimer>
           <hashTree/>
