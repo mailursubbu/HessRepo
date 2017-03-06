@@ -20,30 +20,30 @@
           </elementProp>
           <elementProp name="PerThreadLoopCnt" elementType="Argument">
             <stringProp name="Argument.name">PerThreadLoopCnt</stringProp>
-            <stringProp name="Argument.value">10</stringProp>
+            <stringProp name="Argument.value">1</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="accCodeStartSeq" elementType="Argument">
             <stringProp name="Argument.name">accCodeStartSeq</stringProp>
-            <stringProp name="Argument.value">747002</stringProp>
+            <stringProp name="Argument.value">800207</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="bsiOrderNumStart" elementType="Argument">
             <stringProp name="Argument.name">bsiOrderNumStart</stringProp>
-            <stringProp name="Argument.value">6681</stringProp>
+            <stringProp name="Argument.value">7120</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="serverName" elementType="Argument">
             <stringProp name="Argument.name">serverName</stringProp>
-            <stringProp name="Argument.value">localhost</stringProp>
+            <stringProp name="Argument.value">intomprov.cspire.net</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
-            <stringProp name="Argument.desc">intomprov.cspire.net or 10.102.0.245</stringProp>
+            <stringProp name="Argument.desc">localhost or intomprov.cspire.net or 10.102.0.245</stringProp>
           </elementProp>
           <elementProp name="protocol" elementType="Argument">
             <stringProp name="Argument.name">protocol</stringProp>
-            <stringProp name="Argument.value">http</stringProp>
+            <stringProp name="Argument.value">https</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
-            <stringProp name="Argument.desc">https</stringProp>
+            <stringProp name="Argument.desc">http or https</stringProp>
           </elementProp>
           <elementProp name="serverPort" elementType="Argument">
             <stringProp name="Argument.name">serverPort</stringProp>
@@ -52,12 +52,12 @@
           </elementProp>
           <elementProp name="pkgFile" elementType="Argument">
             <stringProp name="Argument.name">pkgFile</stringProp>
-            <stringProp name="Argument.value">C:\Users\nm_su\Projects\provisioning\mobipm\JMeter\pkg2.txt</stringProp>
+            <stringProp name="Argument.value">C:\Users\dgrimmer\workspace\Provisioning\mobipm\JMeter\pkg2.txt</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="accCodeFile" elementType="Argument">
             <stringProp name="Argument.name">accCodeFile</stringProp>
-            <stringProp name="Argument.value">C:\Users\nm_su\Projects\provisioning\mobipm\JMeter\accCode.txt</stringProp>
+            <stringProp name="Argument.value">C:\Users\dgrimmer\workspace\Provisioning\mobipm\JMeter\accCode.txt</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
             <stringProp name="Argument.desc">Not used. If you wish to read the account codes from file, use this one and delete the AccNumSeq related settings</stringProp>
           </elementProp>
@@ -124,7 +124,7 @@
             <boolProp name="CounterConfig.per_user">false</boolProp>
           </CounterConfig>
           <hashTree/>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Purchase Request" enabled="true">
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Purchase Request" enabled="false">
             <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
             <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
               <collectionProp name="Arguments.arguments">
@@ -183,8 +183,8 @@
             </HeaderManager>
             <hashTree/>
           </hashTree>
-          <ConstantTimer guiclass="ConstantTimerGui" testclass="ConstantTimer" testname="Constant Timer" enabled="false">
-            <stringProp name="ConstantTimer.delay">300</stringProp>
+          <ConstantTimer guiclass="ConstantTimerGui" testclass="ConstantTimer" testname="Constant Timer" enabled="true">
+            <stringProp name="ConstantTimer.delay">3000</stringProp>
           </ConstantTimer>
           <hashTree/>
           <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Cancel Request" enabled="true">
@@ -210,7 +210,6 @@
             &quot;productId&quot;:&quot;${pkg2}&quot;&#xd;
          }&#xd;
       ]&#xd;
-&#xd;
 }</stringProp>
                   <stringProp name="Argument.metadata">=</stringProp>
                 </elementProp>
