@@ -15,27 +15,27 @@
         <collectionProp name="Arguments.arguments">
           <elementProp name="ThreadCnt" elementType="Argument">
             <stringProp name="Argument.name">ThreadCnt</stringProp>
-            <stringProp name="Argument.value">1</stringProp>
+            <stringProp name="Argument.value">4</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="PerThreadLoopCnt" elementType="Argument">
             <stringProp name="Argument.name">PerThreadLoopCnt</stringProp>
-            <stringProp name="Argument.value">1</stringProp>
+            <stringProp name="Argument.value">10</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="accCodeStartSeq" elementType="Argument">
             <stringProp name="Argument.name">accCodeStartSeq</stringProp>
-            <stringProp name="Argument.value">800207</stringProp>
+            <stringProp name="Argument.value">900900</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="bsiOrderNumStart" elementType="Argument">
             <stringProp name="Argument.name">bsiOrderNumStart</stringProp>
-            <stringProp name="Argument.value">7120</stringProp>
+            <stringProp name="Argument.value">9180</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="serverName" elementType="Argument">
             <stringProp name="Argument.name">serverName</stringProp>
-            <stringProp name="Argument.value">intomprov.cspire.net</stringProp>
+            <stringProp name="Argument.value">intprovmaster1.corptest.wan</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
             <stringProp name="Argument.desc">localhost or intomprov.cspire.net or 10.102.0.245</stringProp>
           </elementProp>
@@ -124,7 +124,7 @@
             <boolProp name="CounterConfig.per_user">false</boolProp>
           </CounterConfig>
           <hashTree/>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Purchase Request" enabled="false">
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Purchase Request" enabled="true">
             <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
             <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
               <collectionProp name="Arguments.arguments">
@@ -183,10 +183,6 @@
             </HeaderManager>
             <hashTree/>
           </hashTree>
-          <ConstantTimer guiclass="ConstantTimerGui" testclass="ConstantTimer" testname="Constant Timer" enabled="true">
-            <stringProp name="ConstantTimer.delay">3000</stringProp>
-          </ConstantTimer>
-          <hashTree/>
           <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Cancel Request" enabled="true">
             <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
             <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
@@ -294,7 +290,7 @@ log.info(&quot;The pkg1 is &quot;+${__StringFromFile(${pkgFile},pkg1,,)});</stri
               <connectTime>true</connectTime>
             </value>
           </objProp>
-          <stringProp name="filename"></stringProp>
+          <stringProp name="filename">C:\Users\dgrimmer\workspace\Provisioning\mobipm\JMeter\4x10 Results.csv</stringProp>
         </ResultCollector>
         <hashTree/>
         <ResultCollector guiclass="StatGraphVisualizer" testclass="ResultCollector" testname="Aggregate Graph" enabled="true">
