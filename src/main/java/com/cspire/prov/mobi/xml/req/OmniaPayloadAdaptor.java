@@ -250,8 +250,12 @@ public class OmniaPayloadAdaptor {
 			return WhatToDoWithComp.CANCEL;
 		}
 		
-		if(operation.equals("SR")){
-			log.info("Service Actity is \"SR\", hence all the comp codes would be created" );
+		if(operation.equals("SR")
+				|| operation.equals("R")
+				|| operation.equals("P")
+				|| operation.equals("NR")
+				){
+			log.info("Service Actity is \"{}\", hence all the comp codes would be created",operation );
 			return WhatToDoWithComp.CREATE;
 		}
 		
