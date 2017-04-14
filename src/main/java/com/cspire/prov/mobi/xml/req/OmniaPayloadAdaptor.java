@@ -116,10 +116,6 @@ public class OmniaPayloadAdaptor {
 	}
 
 	private Integer getCompQuantity(REQUEST req, String inputCompCode){
-		String activity = req.getSERVICE().getACTIVITY();
-		
-		
-		
 		List<COMPONENT> comps = req.getSERVICE().getITEM().getQUANTITYBASED().getCOMPONENT();
 		for(COMPONENT comp:comps){
 
@@ -193,6 +189,7 @@ public class OmniaPayloadAdaptor {
 		String operation = req.getSERVICE().getACTIVITY();
 		if(operation.equals("S")
 				|| operation.equals("NS")
+				|| operation.equals("ND")
 				){
 			return true;
 		}else{
@@ -215,9 +212,7 @@ public class OmniaPayloadAdaptor {
 	
 	private Boolean isDisconnectOperation(REQUEST req){
 		String operation = req.getSERVICE().getACTIVITY();
-		if(operation.equals("D") ||
-				operation.equals("ND")
-				){
+		if(operation.equals("D") ){
 			return true;
 		}else{
 			return false;
@@ -320,11 +315,13 @@ public class OmniaPayloadAdaptor {
 			retVal = MobiAccStatus.DEFAULT;
 			break;
 		case "D":
-		case "ND":
+		
 			log.trace("Processing Terminate request ");
 			retVal = MobiAccStatus.DISCONNECT;
 			break;
 		case "S":
+		case "NS":
+		case "ND":
 			log.trace("Processing Suspend request ");
 			retVal = MobiAccStatus.SUSPEND;
 			break;
