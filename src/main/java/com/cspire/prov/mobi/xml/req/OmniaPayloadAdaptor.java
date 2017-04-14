@@ -127,14 +127,16 @@ public class OmniaPayloadAdaptor {
 			String compCode = comp.getCOMPONENTCODE();
 			if(compCode.equals(inputCompCode)){
 				if(comp.getACTION().equals("X") &&
-						!activity.equals("S") &&
-						!activity.equals("SR")){
-					log.trace("{} is X, hence quantity would be returned as null",compCode);
+						!isDisconnectOperation(req) &&
+						!isSuspendOperation(req) && 
+						!isReconnectOperation(req)){
+					log.trace("{} is X , hence quantity would be returned as null",compCode);
 					return null;
 				}
-				if(activity.equals("S") ||
-						activity.equals("SR")){
-					log.trace("As activity is set to \"S\" OR \"SR\", feature code with X would also be considered for cancellation");
+				if(isSuspendOperation(req) ||
+						isReconnectOperation(req) ||
+						isDisconnectOperation(req) ){
+					log.info("As activity is set to \"S\" OR \"SR\" OR \"D\", feature code with X would also be considered for cancellation");
 				}
 				return (int) comp.getQUANTITY();
 			}
@@ -166,16 +168,15 @@ public class OmniaPayloadAdaptor {
 		Purchase purchase=null;
 		//Non-suspend and non-resume operations will only alter DVR.
 		//For suspend and resume,  DVR wont be changed.
-		String operation = req.getSERVICE().getACTIVITY();
-		if(!operation.equals("S") &&
-				!operation.equals("NS") &&
-				!operation.equals("NR")){
+		if(!isSuspendOperation(req) &&
+				!isReconnectOperation(req)){
+			log.info("");
 			purchase=getDvrQtyPurchase(req,accStatus);
 			if(null != purchase){
 				purchaseList.add(purchase);
 			}	
 		}else{
-			log.info("Suspend transation, DVR qty wont be updated");
+			log.info("Suspend/reconnect transation, DVR qty wont be updated");
 		}
 
 
@@ -188,6 +189,41 @@ public class OmniaPayloadAdaptor {
 		return purchaseList.toArray(purchaseArray);
 	}
 
+	private Boolean isSuspendOperation(REQUEST req){
+		String operation = req.getSERVICE().getACTIVITY();
+		if(operation.equals("S")
+				|| operation.equals("NS")
+				){
+			return true;
+		}else{
+			return false;
+		}
+	}
+	
+	private Boolean isReconnectOperation(REQUEST req){
+		String operation = req.getSERVICE().getACTIVITY();
+		if(operation.equals("SR")
+				|| operation.equals("R")
+				|| operation.equals("P")
+				|| operation.equals("NR")
+				){
+			return true;
+		}else{
+			return false;
+		}
+	}
+	
+	private Boolean isDisconnectOperation(REQUEST req){
+		String operation = req.getSERVICE().getACTIVITY();
+		if(operation.equals("D") ||
+				operation.equals("ND")
+				){
+			return true;
+		}else{
+			return false;
+		}
+	}
+	
 	private Purchase getDvrQtyPurchase(REQUEST req,MobiAccStatus accStatus){
 		Integer dvrQty = this.getDvrQuantity(req);
 		Purchase purchase = null;
@@ -223,11 +259,8 @@ public class OmniaPayloadAdaptor {
 	}
 
 	private GlobalEnums getActionForMobi(REQUEST req){
-		String operation = req.getSERVICE().getACTIVITY();
-		if(operation.equals("D") ||
-				operation.equals("ND") ||
-				operation.equals("S") ||
-				operation.equals("NS")){
+		if(isDisconnectOperation(req) ||
+				isSuspendOperation(req)){
 			log.trace("Disconnect and Suspend operations needs cancel action for quantity fields");
 			return GlobalEnums.CANCEL;
 		}else{
@@ -245,16 +278,14 @@ public class OmniaPayloadAdaptor {
 	private WhatToDoWithComp whatToDoWithComponent(REQUEST req,FEATURE feature){
 
 		String operation = req.getSERVICE().getACTIVITY();
-		if(operation.equals("S")){
-			log.info("Service Actity is \"S\", hence all the comp codes would be cancelled" );
+		if(isSuspendOperation(req)
+				|| isDisconnectOperation(req)
+				){
+			log.info("Service Actity is \"{}\", hence all the comp codes would be cancelled",operation );
 			return WhatToDoWithComp.CANCEL;
 		}
 		
-		if(operation.equals("SR")
-				|| operation.equals("R")
-				|| operation.equals("P")
-				|| operation.equals("NR")
-				){
+		if(isReconnectOperation(req)){
 			log.info("Service Actity is \"{}\", hence all the comp codes would be created",operation );
 			return WhatToDoWithComp.CREATE;
 		}
