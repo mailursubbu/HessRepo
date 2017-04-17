@@ -125,12 +125,12 @@ public class OmniaPayloadAdaptor {
 				if(comp.getACTION().equals("X") &&
 						!isDisconnectOperation(req) &&
 						!isSuspendOperation(req) && 
-						!isReconnectOperation(req)){
+						!isUnsuspendReconnectOp(req)){
 					log.trace("{} is X , hence quantity would be returned as null",compCode);
 					return null;
 				}
 				if(isSuspendOperation(req) ||
-						isReconnectOperation(req) ||
+						isUnsuspendReconnectOp(req) ||
 						isDisconnectOperation(req) ){
 					log.info("As activity is set to \"S\" OR \"SR\" OR \"D\", feature code with X would also be considered for cancellation");
 				}
@@ -162,17 +162,15 @@ public class OmniaPayloadAdaptor {
 		}
 
 		Purchase purchase=null;
-		//Non-suspend and non-resume operations will only alter DVR.
-		//For suspend and resume,  DVR wont be changed.
+		//For suspend and resume, DVR wont be changed.
 		if(!isSuspendOperation(req) &&
-				!isReconnectOperation(req)){
-			log.info("");
+				!isUnsuspendOperation(req)){
 			purchase=getDvrQtyPurchase(req,accStatus);
 			if(null != purchase){
 				purchaseList.add(purchase);
 			}	
 		}else{
-			log.info("Suspend/reconnect transation, DVR qty wont be updated");
+			log.info("Suspend/Unsuspend transation, DVR qty wont be updated");
 		}
 
 
@@ -197,13 +195,31 @@ public class OmniaPayloadAdaptor {
 		}
 	}
 	
-	private Boolean isReconnectOperation(REQUEST req){
+	private Boolean isUnsuspendReconnectOp(REQUEST req){
+		if(isUnsuspendOperation(req) 
+				|| isReconnectOperation(req)
+				){
+			return true;
+		}else{
+			return false;
+		}
+	}
+	
+	private Boolean isUnsuspendOperation(REQUEST req){
 		String operation = req.getSERVICE().getACTIVITY();
 		if(operation.equals("SR")
-				|| operation.equals("R")
 				|| operation.equals("P")
 				|| operation.equals("NR")
 				){
+			return true;
+		}else{
+			return false;
+		}
+	}
+	
+	private Boolean isReconnectOperation(REQUEST req){
+		String operation = req.getSERVICE().getACTIVITY();
+		if(operation.equals("R")){
 			return true;
 		}else{
 			return false;
@@ -280,7 +296,7 @@ public class OmniaPayloadAdaptor {
 			return WhatToDoWithComp.CANCEL;
 		}
 		
-		if(isReconnectOperation(req)){
+		if(isUnsuspendReconnectOp(req)){
 			log.info("Service Actity is \"{}\", hence all the comp codes would be created",operation );
 			return WhatToDoWithComp.CREATE;
 		}
