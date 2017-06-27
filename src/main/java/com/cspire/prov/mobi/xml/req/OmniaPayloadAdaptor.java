@@ -49,10 +49,10 @@ public class OmniaPayloadAdaptor {
 
 	@Value("${mobi.config.dvr.code}")
 	String dvrCode;
-	
+
 	@Autowired
 	MobiHouseKeepingService mobiHouseKeepingSer;
-	
+
 
 	public MobitvReq omniaXmlToMobiReq(RawXmlStringPayload xmlRequest) throws IOException{
 		return omniaXmlToMobiReq(xmlRequest, false);
@@ -69,6 +69,7 @@ public class OmniaPayloadAdaptor {
 		mobitvReq.setIsValidationReq(isSimulate);
 		mobitvReq.setPurchase(this.getIptvChannelList(req));
 		mobitvReq.setOrigin(Defaults.ORIGIN_OMNIA);
+		updateTxnType(req,mobitvReq);
 
 		IptvFipsCode fips = null;
 		try{
@@ -80,7 +81,7 @@ public class OmniaPayloadAdaptor {
 					HouseKeepingStatusCodes.FAILED,Defaults.DEFAULT_PROV_ID);
 			throw e;
 		}
-		
+
 		String county = fips.getCounty();
 		String state = fips.getState();
 
@@ -91,6 +92,27 @@ public class OmniaPayloadAdaptor {
 				getMobiAccStatus(req).getStrVal());
 
 		return mobitvReq;        
+	}
+
+	/*
+	 * This parameter is used to tag the provisioning request as Change (C) request, 
+	 * new service Add (A) request or Disconnect (D) request. 
+	 * Please see section “Disconnect Request” for more details.
+	 * BIS will not be providing Suspend (S) requests or Reconnect (R) requests as these will come from Omnia.  
+	 */
+	private void updateTxnType(REQUEST req,MobitvReq mobitvReq) {                
+		
+		if(isDisconnectOperation(req)){
+			mobitvReq.setType("D");
+		}else if(isUnsuspendReconnectOp(req)){
+			mobitvReq.setType("R");
+		}else if(isSuspendOperation(req)){
+			mobitvReq.setType("S");
+		}else if(isAddOperation(req)){
+			mobitvReq.setType("A");
+		}else{
+			mobitvReq.setType("C");
+		}
 	}
 
 	private IptvFipsCode getIptvFipsCode(REQUEST req) {
@@ -211,7 +233,7 @@ public class OmniaPayloadAdaptor {
 			return false;
 		}
 	}
-	
+
 	private Boolean isUnsuspendReconnectOp(REQUEST req){
 		if(isUnsuspendOperation(req) 
 				|| isReconnectOperation(req)
@@ -221,7 +243,7 @@ public class OmniaPayloadAdaptor {
 			return false;
 		}
 	}
-	
+
 	private Boolean isUnsuspendOperation(REQUEST req){
 		String operation = req.getSERVICE().getACTIVITY();
 		if(operation.equals("SR")
@@ -233,7 +255,7 @@ public class OmniaPayloadAdaptor {
 			return false;
 		}
 	}
-	
+
 	private Boolean isReconnectOperation(REQUEST req){
 		String operation = req.getSERVICE().getACTIVITY();
 		if(operation.equals("R")){
@@ -242,7 +264,7 @@ public class OmniaPayloadAdaptor {
 			return false;
 		}
 	}
-	
+
 	private Boolean isDisconnectOperation(REQUEST req){
 		String operation = req.getSERVICE().getACTIVITY();
 		if(operation.equals("D") ){
@@ -251,7 +273,25 @@ public class OmniaPayloadAdaptor {
 			return false;
 		}
 	}
-	
+
+	private Boolean isChangeOperation(REQUEST req){
+		String operation = req.getSERVICE().getACTIVITY();
+		if(operation.equals("C") ){
+			return true;
+		}else{
+			return false;
+		}
+	}
+
+	private Boolean isAddOperation(REQUEST req){
+		String operation = req.getSERVICE().getACTIVITY();
+		if(operation.equals("A")){
+			return true;
+		}else{
+			return false;
+		}
+	}
+
 	private Purchase getDvrQtyPurchase(REQUEST req,MobiAccStatus accStatus){
 		Integer dvrQty = this.getDvrQuantity(req);
 		Purchase purchase = null;
@@ -312,12 +352,12 @@ public class OmniaPayloadAdaptor {
 			log.info("Service Actity is \"{}\", hence all the comp codes would be cancelled",operation );
 			return WhatToDoWithComp.CANCEL;
 		}
-		
+
 		if(isUnsuspendReconnectOp(req)){
 			log.info("Service Actity is \"{}\", hence all the comp codes would be created",operation );
 			return WhatToDoWithComp.CREATE;
 		}
-		
+
 		if(feature.getACTION().equals("D")){
 			log.info("ACTION:{}, Hence COMPONENTCODE:{} would be deleted from mobi", 
 					feature.getACTION(),feature.getCOMPONENTCODE());
@@ -348,7 +388,7 @@ public class OmniaPayloadAdaptor {
 			retVal = MobiAccStatus.DEFAULT;
 			break;
 		case "D":
-		
+
 			log.trace("Processing Terminate request ");
 			retVal = MobiAccStatus.DISCONNECT;
 			break;
