@@ -22,6 +22,8 @@ import com.cspire.prov.framework.exceptions.InvalidConfig;
 import com.cspire.prov.framework.global.constants.Defaults;
 import com.cspire.prov.framework.global.constants.GlobalEnums;
 import com.cspire.prov.framework.global.constants.MobiAccStatus;
+import com.cspire.prov.framework.housekeeping.HouseKeepingErrorCodes;
+import com.cspire.prov.framework.housekeeping.HouseKeepingStatusCodes;
 import com.cspire.prov.framework.model.RawXmlStringPayload;
 import com.cspire.prov.framework.model.mobi.Extended_property;
 import com.cspire.prov.framework.model.mobi.MobitvReq;
@@ -29,6 +31,7 @@ import com.cspire.prov.framework.model.mobi.Purchase;
 import com.cspire.prov.framework.model.mobi.WhatToDoWithComp;
 import com.cspire.prov.framework.utils.UtilFuncs;
 import com.cspire.prov.framework.xml.processor.XmlReqToObjProcessor;
+import com.cspire.prov.housekeeping.MobiHouseKeepingService;
 
 @Component
 public class OmniaPayloadAdaptor {
@@ -46,6 +49,10 @@ public class OmniaPayloadAdaptor {
 
 	@Value("${mobi.config.dvr.code}")
 	String dvrCode;
+	
+	@Autowired
+	MobiHouseKeepingService mobiHouseKeepingSer;
+	
 
 	public MobitvReq omniaXmlToMobiReq(RawXmlStringPayload xmlRequest) throws IOException{
 		return omniaXmlToMobiReq(xmlRequest, false);
@@ -63,7 +70,17 @@ public class OmniaPayloadAdaptor {
 		mobitvReq.setPurchase(this.getIptvChannelList(req));
 		mobitvReq.setOrigin(Defaults.ORIGIN_OMNIA);
 
-		IptvFipsCode fips = this.getIptvFipsCode(req);
+		IptvFipsCode fips = null;
+		try{
+			fips = this.getIptvFipsCode(req);	
+		}catch(InvalidConfig e){
+			//Make an house keeping entry about this failure
+			mobiHouseKeepingSer.houseKeepingUpdate(mobitvReq, e,
+					HouseKeepingErrorCodes.MOBI_PROCESSING_FAILED, 
+					HouseKeepingStatusCodes.FAILED,Defaults.DEFAULT_PROV_ID);
+			throw e;
+		}
+		
 		String county = fips.getCounty();
 		String state = fips.getState();
 

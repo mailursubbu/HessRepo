@@ -87,7 +87,7 @@ public class MobiProvController {
 	public Object mobiQuery(@PathVariable String accCode) throws IOException {
 		if (blackoutService.checkForBalckout("rest//mobi/query")) {
 			return new ProvMngrResponse(utils.getCurrentEpoch(), ProvMngrResponse.BLACKOUT, null, null,
-					ProvMngrResponse.FAIL_MSG, ProvMngrResponse.BLACKOUT_MSG, true);
+					ProvMngrResponse.BLACKOUT_MSG, ProvMngrResponse.BLACKOUT_MSG, true);
 		}          
 		ResponseEntity<Object> queryResp = processMobiRequest.processMobiQueryRequest(accCode);
 		resp.setStatus(queryResp.getStatusCode().value());
@@ -100,7 +100,7 @@ public class MobiProvController {
 			HttpServletResponse resp) throws IOException {
 		if (blackoutService.checkForBalckout("rest/mobi/omnia")) {
 			return new ProvMngrResponse(utils.getCurrentEpoch(), ProvMngrResponse.BLACKOUT, null, null,
-					ProvMngrResponse.FAIL_MSG, ProvMngrResponse.BLACKOUT_MSG, true);
+					ProvMngrResponse.BLACKOUT_MSG, ProvMngrResponse.BLACKOUT_MSG, true);
 		}              
 		MobitvReq inputPayload=omniaPayloadAdaptor.omniaXmlToMobiReq(xmlRequest);        
 		return receiveReqAndSetLoginfo(inputPayload, 
@@ -117,7 +117,7 @@ public class MobiProvController {
 			HttpServletResponse resp) throws IOException {
 		if (blackoutService.checkForBalckout("rest/mobi/omniaSimulate")) {
 			return new ProvMngrResponse(utils.getCurrentEpoch(), ProvMngrResponse.BLACKOUT, null, null,
-					ProvMngrResponse.FAIL_MSG, ProvMngrResponse.BLACKOUT_MSG, true);
+					ProvMngrResponse.BLACKOUT_MSG, ProvMngrResponse.BLACKOUT_MSG, true);
 		}              
 		MobitvReq inputPayload=omniaPayloadAdaptor.omniaXmlToMobiReq(xmlRequest,true);        
 		return receiveReqAndSetLoginfo(inputPayload, 
@@ -139,7 +139,7 @@ public class MobiProvController {
 		// TODO: Implement the filter based blackout.
 		if (blackoutService.checkForBalckout("rest/mobi")) {
 			return new ProvMngrResponse(utils.getCurrentEpoch(), ProvMngrResponse.BLACKOUT, null, null,
-					ProvMngrResponse.FAIL_MSG, ProvMngrResponse.BLACKOUT_MSG, true);
+					ProvMngrResponse.BLACKOUT_MSG, ProvMngrResponse.BLACKOUT_MSG, true);
 		}
 		inputPayload.setIsValidationReq(false);
 		// Try the readonly operations
@@ -156,7 +156,7 @@ public class MobiProvController {
 		// TODO: Implement the filter based blackout.
 		if (blackoutService.checkForBalckout("rest/mobiSimulate")) {
 			return new ProvMngrResponse(utils.getCurrentEpoch(), ProvMngrResponse.BLACKOUT, null, null,
-					ProvMngrResponse.FAIL_MSG, ProvMngrResponse.BLACKOUT_MSG, true);
+					ProvMngrResponse.BLACKOUT_MSG, ProvMngrResponse.BLACKOUT_MSG, true);
 		}
 
 		inputPayload.setIsValidationReq(true);
@@ -379,5 +379,4 @@ public class MobiProvController {
 		return new  ProvMngrResponse(utils.getCurrentEpoch(), HttpStatus.OK.value(), null, null, "Mobi provisioning successful", ProvMngrResponse.MOBI,
 				true) ;  
 	}
-
 }

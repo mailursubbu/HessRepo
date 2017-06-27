@@ -54,7 +54,7 @@ public class MiscController {
             log.info("Cache eviction successful");
         } catch (Exception e) {
             return new ProvMngrResponse(utils.getCurrentEpoch(), ProvMngrResponse.INVALID_REQUEST, e.getMessage(),
-                    utils.exceptionStackTrace(e), ProvMngrResponse.FAIL_MSG, "apmax", false);
+                    utils.exceptionStackTrace(e), ProvMngrResponse.FAIL_MSG, "MOBI", false);
         }
         return new ProvMngrResponse(ProvMngrResponse.SUCCESS, utils.getCurrentEpoch(), ProvMngrResponse.CACHE_EVICTED,
                 false);
@@ -81,7 +81,7 @@ public class MiscController {
     @RequestMapping(value = "/blackoutConfig", method = RequestMethod.POST)
     @ResponseBody
     public ProvMngrResponse blackoutConfig(@RequestBody Blackout inputPayload) {
-        MDC.put("so", "APMAX_BLACKOUT");
+        MDC.put("so", "MOBI_BLACKOUT");
         try {
             log.trace("Processing Blackout Config Request:{}", inputPayload);
             log.info("Current System blackout:{}", blackout);
@@ -89,31 +89,31 @@ public class MiscController {
                 if (inputPayload.getStartTime().longValue() >= inputPayload.getEndTime().longValue()) {
                     return new ProvMngrResponse(utils.getCurrentEpoch(), ProvMngrResponse.INVALID_REQUEST,
                             "Blackout Start time cant be >= End Time", null, ProvMngrResponse.BLACKOUT_CONFIG_FAILED,
-                            ProvMngrResponse.APMAX, true);
+                            ProvMngrResponse.MOBI, true);
                 }
             }
             if(inputPayload.getStartTime()==null && inputPayload.getEndTime()!=null){
                 return new ProvMngrResponse(utils.getCurrentEpoch(), ProvMngrResponse.INVALID_REQUEST,
                         "Blackout End Time always needs to be with Start time", null, ProvMngrResponse.BLACKOUT_CONFIG_FAILED,
-                        ProvMngrResponse.APMAX, true);
+                        ProvMngrResponse.MOBI, true);
             }
             
             blackout.copy(inputPayload);
             log.info("System blackout updated to:{}", blackout);
         } catch (Exception e) {
             return new ProvMngrResponse(utils.getCurrentEpoch(), ProvMngrResponse.INVALID_REQUEST, e.getMessage(),
-                    utils.exceptionStackTrace(e), ProvMngrResponse.BLACKOUT_CONFIG_FAILED, ProvMngrResponse.APMAX,
+                    utils.exceptionStackTrace(e), ProvMngrResponse.BLACKOUT_CONFIG_FAILED, ProvMngrResponse.MOBI,
                     true);
         }
         return new ProvMngrResponse(utils.getCurrentEpoch(), ProvMngrResponse.SUCCESS, null, null,
-                ProvMngrResponse.BLACKOUT_CONFIG_SUCCESS, ProvMngrResponse.APMAX, true);
+                ProvMngrResponse.BLACKOUT_CONFIG_SUCCESS, ProvMngrResponse.MOBI, true);
     }
 
     @CrossOrigin
     @RequestMapping(value = "/blackoutConfig", method = RequestMethod.GET)
     @ResponseBody
     public Blackout blackoutConfig() {
-        MDC.put("so", "APMAX_BLACKOUT");
+        MDC.put("so", "MOBI_BLACKOUT");
         blackout.setIsBlackoutEffective(blackoutService.checkForBalckout());
         return blackout;
     }
@@ -122,7 +122,7 @@ public class MiscController {
     @RequestMapping(value = "/dynamicLogLevelChange", method = RequestMethod.POST)
     @ResponseBody
     public ProvMngrResponse changeLogLevel(@RequestBody LogLevelChange llChangeReq) {
-        MDC.put("so", "APMAX_DYNAMICLOGLEVEL");
+        MDC.put("so", "MOBI_DYNAMICLOGLEVEL");
         try {
             log.trace("Dynamic Log Level Change Initiated {}", llChangeReq);
             llChangeService.processLogLevelChangeRequest(llChangeReq);
@@ -130,17 +130,17 @@ public class MiscController {
         } catch (Exception e) {
             return new ProvMngrResponse(utils.getCurrentEpoch(), ProvMngrResponse.INVALID_REQUEST, e.getMessage(),
                     utils.exceptionStackTrace(e), ProvMngrResponse.DYNAMIC_LOG_LEVEL_CHANGE_FAILED,
-                    ProvMngrResponse.APMAX, true);
+                    ProvMngrResponse.MOBI, true);
         }
         return new ProvMngrResponse(utils.getCurrentEpoch(), ProvMngrResponse.SUCCESS, null, null,
-                ProvMngrResponse.DYNAMIC_LOG_LEVEL_CHANGE_SUCCESS, ProvMngrResponse.APMAX, true);
+                ProvMngrResponse.DYNAMIC_LOG_LEVEL_CHANGE_SUCCESS, ProvMngrResponse.MOBI, true);
     }
 
     @CrossOrigin
     @RequestMapping(value = "/getCurrentLogLevel", method = RequestMethod.POST)
     @ResponseBody
     public LogLevelChange getCurrentLogLevel(@RequestBody LogLevelChange llChangeReq) {
-        MDC.put("so", "APMAX_DYNAMICLOGLEVEL");
+        MDC.put("so", "MOBI_DYNAMICLOGLEVEL");
         try {
             log.trace("Getting Current log level {}", llChangeReq);
             llChangeReq = llChangeService.getCurrentLogLevel(llChangeReq);
