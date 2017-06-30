@@ -3,7 +3,9 @@ package com.cspire.prov.mobi.xml.req;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -19,6 +21,7 @@ import com.cspire.prov.framework.apmax.payload.jaxb.REQUEST;
 import com.cspire.prov.framework.apmax.payload.jaxb.REQUEST.SERVICE.ITEM.FEATURE;
 import com.cspire.prov.framework.apmax.payload.jaxb.REQUEST.SERVICE.ITEM.QUANTITYBASED.COMPONENT;
 import com.cspire.prov.framework.exceptions.InvalidConfig;
+import com.cspire.prov.framework.exceptions.InvalidRequest;
 import com.cspire.prov.framework.global.constants.Defaults;
 import com.cspire.prov.framework.global.constants.GlobalEnums;
 import com.cspire.prov.framework.global.constants.MobiAccStatus;
@@ -101,7 +104,7 @@ public class OmniaPayloadAdaptor {
 	 * BIS will not be providing Suspend (S) requests or Reconnect (R) requests as these will come from Omnia.  
 	 */
 	private void updateTxnType(REQUEST req,MobitvReq mobitvReq) {                
-		
+
 		if(isDisconnectOperation(req)){
 			mobitvReq.setType("D");
 		}else if(isUnsuspendReconnectOp(req)){
@@ -157,28 +160,93 @@ public class OmniaPayloadAdaptor {
 	private Integer getCompQuantity(REQUEST req, String inputCompCode){
 		List<COMPONENT> comps = req.getSERVICE().getITEM().getQUANTITYBASED().getCOMPONENT();
 		for(COMPONENT comp:comps){
-
-			//String compCode = comp.getACTIVATIONDATE();
 			String compCode = comp.getCOMPONENTCODE();
 			if(compCode.equals(inputCompCode)){
-				if(comp.getACTION().equals("X") &&
+				/*
+				 * Deactivated comp codes would be ignored
+				 */
+				if(!isValidQtyComp(req,comp)){
+					continue;
+				}
+
+				/*if(comp.getACTION().equals("X") &&
 						!isDisconnectOperation(req) &&
 						!isSuspendOperation(req) && 
 						!isUnsuspendReconnectOp(req)){
 					log.trace("{} is X , hence quantity would be returned as null",compCode);
 					return null;
-				}
-				if(isSuspendOperation(req) ||
+				}*/
+				/*if(isSuspendOperation(req) ||
 						isUnsuspendReconnectOp(req) ||
 						isDisconnectOperation(req) ){
 					log.info("As activity is set to \"S\" OR \"SR\" OR \"D\", feature code with X would also be considered for cancellation");
-				}
+				}*/
 				return (int) comp.getQUANTITY();
 			}
 		}
 		return null;
 	}
 
+	private Boolean isValidQtyComp(REQUEST req,COMPONENT comp){
+
+		String compAction = comp.getACTION();
+		//For change service level actity, ignore the X comp and throw error for D comp
+		if(isChangeOperation(req)){
+			if(compAction.equals("D")){
+				log.error(comp.getCOMPONENTCODE()+" deactivation not supported from Service change activity" );
+				throw new InvalidRequest(comp.getCOMPONENTCODE()+" deactivation not supported from Service change activity");
+			}
+			if(compAction.equals("X")){
+				log.trace("Action is X. Hence ignoring the comp code:{} for change request",comp.getCOMPONENTCODE());
+				return false;
+			}
+		}
+
+		//For suspend and disconnects, if there is an deactivation date for the X action
+		if(isSuspendOperation(req) ||
+				isUnsuspendReconnectOp(req)){
+			//Look for deactivated comp codes. If there is an deactivated comp code, then return false for it
+			if(!isValidDeactDate(comp)){
+				log.trace("Deactivation date is <= today.Hence comp code:{} "
+						+ "is ignored for uspend/unsuspend op",comp.getCOMPONENTCODE());
+				return false;
+			}
+		}
+		
+		if(isDisconnectOperation(req)){
+			//Ignore all the X comp codes..
+			if(compAction.equals("X")){
+				log.trace("Comp Code:{} has action X. Hence its ignored "
+						+ "for disconnect operation",comp.getCOMPONENTCODE());
+				return false;
+			}
+		}
+		
+		return true;
+	}
+
+	private Boolean isValidDeactDate(COMPONENT comp){
+		String strDeactDate = comp.getDEACTIVATIONDATE();
+		Date deactDate = null;
+		SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yyyy");
+		if(strDeactDate!=null && !strDeactDate.equals("")){            
+			deactDate = UtilFuncs.stringToDate(strDeactDate);
+			Date todayDate = UtilFuncs.todayDate();
+			if(deactDate.compareTo(todayDate)<=0){
+				log.trace("DEACTIVATIONDATE:{} <= today's date:{} for COMPONENTCODE:{}."
+						+ "Hence it wont be provisioned", 
+						comp.getDEACTIVATIONDATE(),formatter.format(todayDate),comp.getCOMPONENTCODE());
+				return false;
+			}else{
+				log.trace("DEACTIVATIONDATE:{} > today's date:{} for COMPONENTCODE:{}."
+						+ "Hence component code would be used for provisioning", 
+						comp.getDEACTIVATIONDATE(),formatter.format(todayDate),comp.getCOMPONENTCODE());
+			}
+		}
+		return true;
+	}
+	
+	 
 	private Purchase[] getIptvChannelList(REQUEST req) {
 		List<FEATURE> featureList = req.getSERVICE().getITEM().getFEATURE();
 		ArrayList<Purchase> purchaseList = new ArrayList<Purchase>();
@@ -344,7 +412,6 @@ public class OmniaPayloadAdaptor {
 	}
 
 	private WhatToDoWithComp whatToDoWithComponent(REQUEST req,FEATURE feature){
-
 		String operation = req.getSERVICE().getACTIVITY();
 		if(isSuspendOperation(req)
 				|| isDisconnectOperation(req)
@@ -422,7 +489,9 @@ public class OmniaPayloadAdaptor {
 		return retVal;
 	}
 
-	private Boolean isActiveComponent(FEATURE feature){
+
+
+	/*	private Boolean isActiveComponent(FEATURE feature){
 
 		String strDeactDate = feature.getDEACTIVATIONDATE();
 		Date deactDate = null;
@@ -436,12 +505,12 @@ public class OmniaPayloadAdaptor {
 						feature.getDEACTIVATIONDATE(),formatter.format(todayDate),feature.getCOMPONENTCODE());
 				return false;
 			}else{
-				log.info("DEACTIVATIONDATE:{} > today's date:{} for COMPONENTCODE:{}."
+				log.trace("DEACTIVATIONDATE:{} > today's date:{} for COMPONENTCODE:{}."
 						+ "Hence component code would be used for provisioning", 
 						feature.getDEACTIVATIONDATE(),formatter.format(todayDate),feature.getCOMPONENTCODE());
 			}
 		}
 		return true;
-	}
+	}*/
 
 }
