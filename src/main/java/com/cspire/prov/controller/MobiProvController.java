@@ -13,12 +13,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.ResourceAccessException;
 
@@ -118,8 +120,8 @@ public class MobiProvController {
 		if (blackoutService.checkForBalckout("rest/mobi/omniaSimulate")) {
 			return new ProvMngrResponse(utils.getCurrentEpoch(), ProvMngrResponse.BLACKOUT, null, null,
 					ProvMngrResponse.BLACKOUT_MSG, ProvMngrResponse.BLACKOUT_MSG, true);
-		}              
-		MobitvReq inputPayload=omniaPayloadAdaptor.omniaXmlToMobiReq(xmlRequest,true);        
+		}          
+		MobitvReq inputPayload=omniaPayloadAdaptor.omniaXmlToMobiReq(xmlRequest,true);
 		return receiveReqAndSetLoginfo(inputPayload, 
 				true,
 				inputPayload.getServiceRequestItemId(),
@@ -378,5 +380,28 @@ public class MobiProvController {
 		}        
 		return new  ProvMngrResponse(utils.getCurrentEpoch(), HttpStatus.OK.value(), null, null, "Mobi provisioning successful", ProvMngrResponse.MOBI,
 				true) ;  
+	}
+	
+	/*
+	 * Below two are the safe gaurds for 500
+	 * Before hitting the below code, house keeping should have been already happened.
+	 */
+	@ExceptionHandler(InvalidConfig.class)
+	@ResponseStatus(HttpStatus.BAD_REQUEST)
+	public ProvMngrResponse invalidConfigHandler(InvalidConfig e) {
+		log.error("Processing failed with error",e.getMessage());
+		return new  ProvMngrResponse(utils.getCurrentEpoch(), 
+				HttpStatus.BAD_REQUEST.value(), ProvMngrResponse.MOBI_PROCESSING_FAILED, 
+				utils.exceptionStackTrace(e), "Mobi PM-"+e.getMessage(), ProvMngrResponse.MOBI,
+				false) ;	}
+	
+	
+	@ExceptionHandler(InvalidRequest.class)
+	@ResponseStatus(HttpStatus.BAD_REQUEST)
+	public ProvMngrResponse invalidRequestHandler(InvalidRequest e) {
+		log.error("Processing failed with error",e.getMessage());
+		return new  ProvMngrResponse(utils.getCurrentEpoch(), HttpStatus.BAD_REQUEST.value(), ProvMngrResponse.MOBI_PROCESSING_FAILED, utils.exceptionStackTrace(e), "Mobi PM-"+e.getMessage(), ProvMngrResponse.MOBI,
+				false) ;
+		
 	}
 }

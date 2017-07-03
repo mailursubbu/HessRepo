@@ -60,6 +60,7 @@ public class OmniaPayloadAdaptor {
 	public MobitvReq omniaXmlToMobiReq(RawXmlStringPayload xmlRequest) throws IOException{
 		return omniaXmlToMobiReq(xmlRequest, false);
 	}
+	 
 	public MobitvReq omniaXmlToMobiReq(RawXmlStringPayload xmlRequest,Boolean isSimulate) throws IOException{
 		String xmlReq = xmlRequest.getXmlString();
 
@@ -70,10 +71,20 @@ public class OmniaPayloadAdaptor {
 		mobitvReq.setAccountCode(req.getACCOUNT().getACCOUNTCODE().trim());
 		mobitvReq.setServiceOrder(req.getSERVICEORDERNUMBER());
 		mobitvReq.setIsValidationReq(isSimulate);
-		mobitvReq.setPurchase(this.getIptvChannelList(req));
+		
 		mobitvReq.setOrigin(Defaults.ORIGIN_OMNIA);
 		updateTxnType(req,mobitvReq);
 
+		try{
+			mobitvReq.setPurchase(this.getIptvChannelList(req));	
+		}catch(InvalidRequest invalidReq){
+			//Make an house keeping entry about this failure
+			mobiHouseKeepingSer.houseKeepingUpdate(mobitvReq, invalidReq,
+					HouseKeepingErrorCodes.MOBI_PROCESSING_FAILED, 
+					HouseKeepingStatusCodes.FAILED,Defaults.DEFAULT_PROV_ID);
+			throw invalidReq;
+		}
+		
 		IptvFipsCode fips = null;
 		try{
 			fips = this.getIptvFipsCode(req);	
@@ -100,11 +111,11 @@ public class OmniaPayloadAdaptor {
 	/*
 	 * This parameter is used to tag the provisioning request as Change (C) request, 
 	 * new service Add (A) request or Disconnect (D) request. 
-	 * Please see section “Disconnect Request” for more details.
+	 * Please see section Disconnect Request for more details.
 	 * BIS will not be providing Suspend (S) requests or Reconnect (R) requests as these will come from Omnia.  
 	 */
 	private void updateTxnType(REQUEST req,MobitvReq mobitvReq) {                
-
+		
 		if(isDisconnectOperation(req)){
 			mobitvReq.setType("D");
 		}else if(isUnsuspendReconnectOp(req)){
@@ -193,8 +204,9 @@ public class OmniaPayloadAdaptor {
 		//For change service level actity, ignore the X comp and throw error for D comp
 		if(isChangeOperation(req)){
 			if(compAction.equals("D")){
-				log.error(comp.getCOMPONENTCODE()+" deactivation not supported from Service change activity" );
-				throw new InvalidRequest(comp.getCOMPONENTCODE()+" deactivation not supported from Service change activity");
+				log.error(comp.getCOMPONENTCODE()+" deactivation not supported from Service change activity" ); 
+                throw new InvalidRequest(comp.getCOMPONENTCODE()+" deactivation not supported from Service change activity");
+				
 			}
 			if(compAction.equals("X")){
 				log.trace("Action is X. Hence ignoring the comp code:{} for change request",comp.getCOMPONENTCODE());
