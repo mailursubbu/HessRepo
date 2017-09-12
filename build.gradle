@@ -20,26 +20,14 @@ buildscript {
   }
 }
 
-apply plugin: 'net.researchgate.release'
 apply plugin: 'java'
 apply plugin: 'eclipse'
 apply plugin: 'spring-boot' 
 
-release {
-  failOnUnversionedFiles = false
-}
 
-//apply plugin: 'findbugs'
-
-/*tasks.withType(FindBugs) {
-    reports {
-        xml.enabled = false
-        html.enabled = true
-    }
-}*/
 
 jar {
-	baseName = 'MobiProvMngr'
+	baseName = 'HessRestAdaptor'
 	version = '1.002'
 }
 sourceCompatibility = 1.8
@@ -51,30 +39,22 @@ repositories {
 
 repositories {
     flatDir {
-        dirs 'MicrosoftLibs'
+        dirs 'pcmJars'
     }    
 }
 
-configurations {
-    jaxb
-}
 
 dependencies {
-	compile project(':framework')
 	compile('org.springframework.boot:spring-boot-starter-web')
 	compile('org.springframework.boot:spring-boot-starter-actuator')
-	compile('com.microsoft.sqlserver:sqljdbc4:4.2')
-	compile('org.springframework.boot:spring-boot-starter-data-jpa')
-	compile('com.fasterxml.jackson.dataformat:jackson-dataformat-xml')
-	compile('org.hsqldb:hsqldb:2.3.3')
-	compile('postgresql:postgresql:9.1-901.jdbc4')
-	compile('org.springframework.ws:spring-ws-core')
 	compile('org.springframework.retry:spring-retry:1.1.2.RELEASE')
 	compile("org.springframework.boot:spring-boot-starter")
 	compile 'org.apache.httpcomponents:httpclient:4.5.2'
-	//compile 'org.springframework.security:spring-security-web:4.1.0.RELEASE'
-	//compile('org.springframework.boot:spring-boot-starter-mail:1.2.6.RELEASE')
-	jaxb "com.sun.xml.bind:jaxb-xjc:2.1.7"
+	compile('postgresql:postgresql:9.1-901.jdbc4')
+	compile('com.portal.pcm:pcm:1');
+	compile('com.portal.pcm:pcmext:1');
+	//compile('com.microsoft.sqlserver:sqljdbc4:4.2')
+	
 	testCompile('org.springframework.boot:spring-boot-starter-test') 	
 }
 
@@ -90,10 +70,3 @@ task wrapper(type: Wrapper) {
 	gradleVersion = '2.9'
 }
 
-task copyApMaxJar << {
-    copy {
-        from 'build/libs/'
-        into 'Z:/Provisioning/ApMaxProvJars'
-        include '**/*.jar'
-    }
-}

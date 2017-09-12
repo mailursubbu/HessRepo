@@ -1,4 +1,0 @@
-Label,# Samples,Average,Median,90% Line,95% Line,99% Line,Min,Max,Error %,Throughput,Received KB/sec,Sent KB/sec
-Purchase Request,40,2169,2184,2718,3023,3445,693,3445,0.000%,.95161,0.48,0.00
-Cancel Request,40,1982,2006,2291,2507,2921,621,2921,0.000%,.94558,0.47,0.00
-TOTAL,80,2075,2066,2543,2719,3108,621,3445,0.000%,1.84647,0.92,0.00
