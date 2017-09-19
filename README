@@ -1,0 +1,109 @@
+IOT end points:-
+
+Hi Sanjeeb,
+
+Following is end point and json. 
+All the method of resource is post 
+
+Create Accounts 
+
+endPoint Url :: https://3qs5ja4pm9.execute-api.us-west-2.amazonaws.com/testIot/accounts
+
+JSON ::
+
+{
+"crmData":
+[
+{"name":"id","value":""},
+{"name":"name","value":"sitakanta"},
+{"name":"project_c","value":"AxcessIOT"},
+{"name":"email1","value":"testemail@test.com"},
+{"name":"password_c","value":"123"},
+{"name":"re_password_c","value":"123"},
+{"name":"first_record_c","value":"1"},
+{"name":"master_monitoring_account_c","value":"1"},
+{"name":"account_type_c","value":"Monitoring Account"}
+]
+}
+
+in values you have to provide all details.
+id value will be empty for creation and for update you have to provide id value
+
+Following you have to provide as it is
+{"name":"project_c","value":"AxcessIOT"},
+{"name":"first_record_c","value":"1"},  
+{"name":"master_monitoring_account_c","value":"1"},
+{"name":"account_type_c","value":"Monitoring Account"}
+
+////////////////////// Response ////////////////////////
+{
+  "data": {
+    "account": {
+      "id": "WlRRMU1EQm1ZalV0WlRCaU5DMDVaV1ZqTFdSaU56RXROVGxpTVRCa1pETTBaamcy"
+    }
+  },
+  "message": "Account Created Successfully !",
+  "success": "yes"
+}
+
+In response id value is double encoded by base64_encode.
+To use id value you have to decode twice.
+
+
+
+Create Device 
+
+endPoint Url :: https://3qs5ja4pm9.execute-api.us-west-2.amazonaws.com/testIot/devices
+
+JSON :: 
+{
+"crmData":
+[
+{"name":"id","value":""},
+{"name":"name","value":"sitakan_KPTdevice"},
+{"name":"alias_name_c","value":"KPTdevice"},
+{"name":"unique_attribute_c","value":"11223345KPTdevice"},
+{"name":"host_type_c","value":"sensor"},
+{"name":"hub_c","value":0},
+{"name":"device_endpoint__c","value":""},
+{"name":"resource_type_c","value":"Device"},
+{"name":"latitude_c","value":""},
+{"name":"longitude_c","value":""},
+{"name":"hub_child_c","value":0}
+],
+"modulename":"MHS01_Hosts",
+"accountId":"f274d675-90d1-0381-818c-58d9ea8f3633",
+"deviceType":"sensor"
+}
+
+Inside "crmData" array 
+unique_attribute_c is device mac address, must be unique. host_type_c will be "sensor" pass as it is,
+{"name":"hub_c","value":0} pass as it is.
+{"name":"resource_type_c","value":"Device"}, pass as it is.
+{"name":"hub_child_c","value":0}, pass as it is. 
+ 
+{"name":"device_endpoint__c","value":""}, endpoint of your device not required but for empty value graph will not show.
+{"name":"latitude_c","value":""}, device latitude_c value not required.
+{"name":"longitude_c","value":""}, device longitude_c value not required.
+ 
+ 
+"modulename":"MHS01_Hosts", pass as it is.
+"accountId":"", id of account under which device will get created, returned during account create
+"deviceType":"sensor", pass as it is.
+
+////////////////////// Response ////////////////////////
+
+{
+"data":{"MHS01_Hosts":{"id":"a96ba89f-e694-2f08-f4df-59b119bbda66"},
+"services":{"entry_list":[
+{"count":3,"total_records":
+["1dd50611-def0-eb61-4ea9-59b119aef8b9","371c6f66-82c1-4df6-cef8-59b1195ff280","4ad95167-2502-37c1-2b7b-59b1191da2af"]}],
+"error":{"number":0,"name":"No Error","description":"No Error"}}},
+"message":"MHS01_Hosts Created Successfully !",
+"success":"yes"
+}
+
+ 
+
+Regards
+Akhil

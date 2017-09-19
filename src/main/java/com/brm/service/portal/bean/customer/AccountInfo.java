@@ -20,6 +20,7 @@ public class AccountInfo {
 	private CustomerNameInfo nameInfo;
 	private CustomerPayInfo payInfo;
 	private List<CustomerNameInfo> nameInfoList = new ArrayList<CustomerNameInfo>();
+	private String iotDeviceMac;
 	
 	public String getAccountNo() {
 		return accountNo;
@@ -83,6 +84,13 @@ public class AccountInfo {
 		this.startDate = startDate;
 	}
 	
+	
+	public String getIotDeviceMac() {
+		return iotDeviceMac;
+	}
+	public void setIotDeviceMac(String iotDeviceMac) {
+		this.iotDeviceMac = iotDeviceMac;
+	}
 	public Date getEndDate() {
 		DateFormat df = new SimpleDateFormat("MM-dd-yyyy");
 		Date tempEndDate = null;
@@ -99,4 +107,5 @@ public class AccountInfo {
 	public void setEndDate(Date endDate) {
 		this.endDate = endDate;
 	}
+	
 }
