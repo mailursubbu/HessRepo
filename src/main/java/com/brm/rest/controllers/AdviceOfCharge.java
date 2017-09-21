@@ -1,5 +1,6 @@
 package com.brm.rest.controllers;
 
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -11,7 +12,7 @@ import com.brm.service.portal.bean.aoc.AocResponse;
 
 /*@Path("/aoc")*/
 @RestController
-@RequestMapping("/rest")
+@RequestMapping("/OBRMRESTService/rest/")
 public class AdviceOfCharge {
 	
 	/*@RolesAllowed("member")
@@ -20,7 +21,7 @@ public class AdviceOfCharge {
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })*/
 	@RequestMapping(value = "/aoc", method = RequestMethod.POST)
 	@ResponseBody
-	public AocResponse getAOC(AocRequest request) {
+	public AocResponse getAOC(@RequestBody AocRequest request) {
 		AdviceOfChargeDao aocDao = new AdviceOfChargeDao();
 		return aocDao.getAdviceOfCharge(request);
 	}

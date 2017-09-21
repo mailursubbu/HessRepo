@@ -13,7 +13,7 @@ import com.brm.service.portal.bean.payment.PaymentURL;
 
 //@Path("/payment")
 @RestController
-@RequestMapping("/rest")
+@RequestMapping("/OBRMRESTService/rest/payment")
 public class PaymentService {
 	
 	/*@RolesAllowed("member")
@@ -27,7 +27,7 @@ public com.brm.service.portal.bean.payment.PaymentURL com.brm.rest.controllers.P
 to {[/rest/payment/{acctno}],methods=[GET]}: There is already 'getCutomerInfo' bean method
 public java.util.List<com.brm.service.portal.bean.customer.get.PaymentInfo> com.brm.rest.controllers.GetCutomerInfo.getPaymentHistory(java.lang.String,int) mapped.
 	 */
-	/*@RequestMapping(value = "/payment/{acctno}", method = RequestMethod.GET)
+	/*@RequestMapping(value = "/{acctno}", method = RequestMethod.GET)
 	@ResponseBody
 	public PaymentURL getURL(@PathVariable("acctno") String acctNo,
 			@RequestHeader("authorization") String authString) {

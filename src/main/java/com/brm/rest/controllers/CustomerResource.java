@@ -24,7 +24,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.StringUtils;
 
 @RestController
-@RequestMapping("/rest")
+@RequestMapping("/OBRMRESTService/rest/accounts")
 /*@Path("/accounts")*/
 public class CustomerResource {
 	@Autowired
@@ -36,7 +36,7 @@ public class CustomerResource {
 	@GET
 	@Path("{acctno}")
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })*/
-	@RequestMapping(value = "/accounts/{acctno}", method = RequestMethod.GET)
+	@RequestMapping(value = "/{acctno}", method = RequestMethod.GET)
 	@ResponseBody
 	/*public CustomerInfo getCustomer(@PathParam("acctno") String acctNo,
 					@HeaderParam("authorization") String authString) {*/
@@ -57,7 +57,7 @@ public class CustomerResource {
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })*/
-	@RequestMapping(value = "/accounts", method = RequestMethod.POST)
+	@RequestMapping(value = "/", method = RequestMethod.POST)
 	@ResponseBody
 	public Response createCustomer(@RequestBody AccountInfo account) {
 		if(account.getPlanName().endsWith("IoT")){

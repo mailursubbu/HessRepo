@@ -1,5 +1,6 @@
 package com.brm.rest.controllers;
 
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -13,7 +14,7 @@ import com.brm.service.portal.bean.customer.put.Payment;
 
 //@Path("/")
 @RestController
-@RequestMapping("/rest")
+@RequestMapping("/OBRMRESTService/rest/")
 public class PutCustomer {
 	
 	/*@RolesAllowed("editor")
@@ -35,7 +36,7 @@ public class PutCustomer {
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })*/
 	@RequestMapping(value = "/adjustment", method = RequestMethod.PUT)
 	@ResponseBody
-	public Response postAdjustment(Adjustment adjustment) {
+	public Response postAdjustment(@RequestBody Adjustment adjustment) {
 		
 		AdjustmentDao adjDao = new AdjustmentDao();
 		return adjDao.postAdjustment(adjustment);

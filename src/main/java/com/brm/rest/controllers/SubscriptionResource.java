@@ -2,6 +2,7 @@ package com.brm.rest.controllers;
 
 import org.apache.log4j.Logger;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -16,7 +17,7 @@ import com.brm.service.portal.bean.subscription.SubscriptionInfo;
 
 //@Path("/subscriptions")
 @RestController
-@RequestMapping("/rest")
+@RequestMapping("/OBRMRESTService/rest/subscriptions")
 public class SubscriptionResource {
 	
 	private static final Logger log = Logger.getLogger("Connector");
@@ -25,7 +26,7 @@ public class SubscriptionResource {
 	@GET
 	@Path("{acctno}")
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })*/
-	@RequestMapping(value = "/subscriptions/{acctno}", method = RequestMethod.GET)
+	@RequestMapping(value = "/{acctno}", method = RequestMethod.GET)
 	@ResponseBody
 	public SubscriptionInfo getSubscription(@PathVariable("acctno") String acctNo) {
 		
@@ -61,9 +62,9 @@ public class SubscriptionResource {
 	/*@POST
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })*/
-	@RequestMapping(value = "/subscriptions", method = RequestMethod.POST)
+	@RequestMapping(value = "/", method = RequestMethod.POST)
 	@ResponseBody
-	public Response purchaseDeal(DealInfo dInfo) {
+	public Response purchaseDeal(@RequestBody DealInfo dInfo) {
 		log.info("Entered purchaseDeal method of SubscriptionResource class");
 		SubscriptionDao subscr = new SubscriptionDao();
 		return subscr.purchaseDealWorker(dInfo);
@@ -73,9 +74,9 @@ public class SubscriptionResource {
     @Path("cancel")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })*/
-	@RequestMapping(value = "/subscriptions/cancel", method = RequestMethod.POST)
+	@RequestMapping(value = "/cancel", method = RequestMethod.POST)
 	@ResponseBody
-    public Response cancelDeal(DealInfo dInfo) {
+    public Response cancelDeal(@RequestBody DealInfo dInfo) {
          
           SubscriptionDao subscr = new SubscriptionDao();
           return subscr.cancelDealWorker(dInfo);
@@ -85,9 +86,9 @@ public class SubscriptionResource {
     @Path("planchange")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })*/
-	@RequestMapping(value = "/subscriptions/planchange", method = RequestMethod.POST)
+	@RequestMapping(value = "/planchange", method = RequestMethod.POST)
 	@ResponseBody
-    public Response changeDeal(PlanChangeInfo dInfo) {
+    public Response changeDeal(@RequestBody PlanChangeInfo dInfo) {
          
           SubscriptionDao subscr = new SubscriptionDao();
           return subscr.changeDealWorker(dInfo);

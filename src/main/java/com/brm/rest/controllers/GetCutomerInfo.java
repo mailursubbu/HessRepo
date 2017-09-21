@@ -19,7 +19,7 @@ import com.brm.service.portal.bean.customer.get.PaymentList;
 
 //@Path("/")
 @RestController
-@RequestMapping("/rest")
+@RequestMapping("/OBRMRESTService/rest/")
 public class GetCutomerInfo {
 	
 /*	@RolesAllowed("member")

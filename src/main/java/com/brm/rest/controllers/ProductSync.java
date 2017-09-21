@@ -16,14 +16,14 @@ import com.brm.service.portal.bean.sync.Plan;
 
 //@Path("/productcatalogue")
 @RestController
-@RequestMapping("/rest")
+@RequestMapping("/OBRMRESTService/rest/productcatalogue")
 public class ProductSync {
 	
 	/*@RolesAllowed("member")
 	@GET
 	@Path("{name}")
 	@Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })*/
-	@RequestMapping(value = "/productcatalogue/{name}", method = RequestMethod.GET)
+	@RequestMapping(value = "/{name}", method = RequestMethod.GET)
 	@ResponseBody
 	public List<Catalogue> getProductCatalogue(@PathVariable("name") String name) {
 		
@@ -144,7 +144,7 @@ public class ProductSync {
 	@GET
 	@Path("{name}/xml")
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })*/
-	@RequestMapping(value = "{name}/xml", method = RequestMethod.GET)
+	@RequestMapping(value = "/{name}/xml", method = RequestMethod.GET)
 	@ResponseBody
 	public CatalogueList getPlanCatalogueList(@PathVariable("name") String name) {
 		

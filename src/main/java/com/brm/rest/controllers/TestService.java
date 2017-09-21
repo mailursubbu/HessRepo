@@ -9,12 +9,12 @@ import com.brm.service.portal.bean.Response;
 
 //@Path("/test")
 @RestController
-@RequestMapping("/rest")
+@RequestMapping("/OBRMRESTService/rest/test")
 public class TestService {
 	
 /*	@GET
 	@Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })*/
-	@RequestMapping(value = "/test", method = RequestMethod.GET)
+	@RequestMapping(value = "/", method = RequestMethod.GET)
 	@ResponseBody
 	public Response TestRestService() {
 		Response resp = new Response();
