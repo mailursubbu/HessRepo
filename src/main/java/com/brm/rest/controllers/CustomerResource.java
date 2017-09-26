@@ -65,7 +65,7 @@ public class CustomerResource {
 		if(account.getPlanName().endsWith("IoT")){
 			String iotAccId = iotAccDao.provisionIotAccount(account);
 			String decodedIotAccId = decode(decode(iotAccId));
-			log.debug("IOT account successfully created with decodedIotAccId"+decodedIotAccId);
+			log.debug("IOT account successfully created with decodedIotAccId: "+decodedIotAccId);
 			iotDeviceDao.provisionIotDevice(account, decodedIotAccId);
 		}
 		

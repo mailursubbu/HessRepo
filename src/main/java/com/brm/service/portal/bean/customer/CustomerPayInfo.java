@@ -79,5 +79,12 @@ public class CustomerPayInfo {
 	public void setBankNo(String bankNo) {
 		BankNo = bankNo;
 	}
+	@Override
+	public String toString() {
+		return "CustomerPayInfo [name=" + name + ", country=" + country + ", state=" + state + ", zip=" + zip
+				+ ", city=" + city + ", emailAddress=" + emailAddress + ", address=" + address + ", payType=" + payType
+				+ ", cardNo=" + cardNo + ", cardExp=" + cardExp + ", BankNo=" + BankNo + "]";
+	}
+	
 
 }

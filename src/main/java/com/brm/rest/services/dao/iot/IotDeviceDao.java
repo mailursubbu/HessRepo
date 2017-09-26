@@ -1,6 +1,7 @@
 package com.brm.rest.services.dao.iot;
 
 import java.util.Arrays;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import com.brm.service.portal.bean.customer.AccountInfo;
+import com.brm.service.portal.bean.customer.CustomerNameInfo;
 import com.brm.services.iot.model.InvalidRequest;
 import com.brm.services.iot.model.IotDeviceCreate;
 import com.brm.services.iot.model.IotDeviceCreateResp;
@@ -63,6 +65,7 @@ public class IotDeviceDao {
         }
 	}
 	
+    
     /*private final Logger log = LoggerFactory.getLogger(IotDeviceDao.class);
 
 	@Autowired

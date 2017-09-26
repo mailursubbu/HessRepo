@@ -1,8 +1,10 @@
 package com.brm.services.iot.model;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import com.brm.service.portal.bean.customer.AccountInfo;
+import com.brm.service.portal.bean.customer.CustomerNameInfo;
 
 public final class IotDeviceCreate {
     CrmData crmData[];
@@ -64,13 +66,13 @@ public final class IotDeviceCreate {
     	CrmData crmData = new CrmData("id","");
     	crmDataList.add(crmData);
     	
-    	crmData = new CrmData("name",accInfo.getNameInfo().getFirstName() + " "+accInfo.getNameInfo().getLastName() );
+    	crmData = new CrmData("name",getCustName(accInfo) );
     	crmDataList.add(crmData);
     	
-    	crmData = new CrmData("alias_name_c",accInfo.getNameInfo().getFirstName() + " "+accInfo.getNameInfo().getLastName() );
+    	crmData = new CrmData("alias_name_c",getCustName(accInfo) );
     	crmDataList.add(crmData);
     	
-    	crmData = new CrmData("unique_attribute_c",accInfo.getNameInfo().getFirstName() + " "+accInfo.getNameInfo().getLastName());
+    	crmData = new CrmData("unique_attribute_c",getCustName(accInfo));
     	crmDataList.add(crmData);
     	
     	crmData = new CrmData("host_type_c","sensor");
@@ -98,4 +100,22 @@ public final class IotDeviceCreate {
     	
     	accInfo.getAccountNo();
     }    
+	private String getCustName(AccountInfo accountInfo){
+    	List<CustomerNameInfo> nameInfoList  = accountInfo.getNameInfoList();
+		for (CustomerNameInfo nameInfo : nameInfoList) {
+			if(nameInfo.getFirstName()!=null){
+				return nameInfo.getFirstName() + nameInfo.getLastName();
+			}
+		}
+		return "UnknowName";
+    }
+   private String getCustEmail(AccountInfo accountInfo){
+    	List<CustomerNameInfo> nameInfoList  = accountInfo.getNameInfoList();
+		for (CustomerNameInfo nameInfo : nameInfoList) {
+			if(nameInfo.getEmailAddress()!=null){
+				return nameInfo.getEmailAddress();
+			}
+		}
+		return "UnknowName@gmail.com";
+    }
 }

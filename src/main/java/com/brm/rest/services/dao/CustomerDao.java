@@ -78,7 +78,7 @@ public class CustomerDao {
 		// TODO Auto-generated constructor stub
 	}
 
-	private static final Logger log = Logger.getLogger("Connector");
+	private static final Logger log = Logger.getLogger(CustomerDao.class);
 		
 	public CustomerInfo getCustomerDetails(String acctNo){
 		PCMWrapper connector = new PCMWrapper();

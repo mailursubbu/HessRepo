@@ -28,7 +28,7 @@ public final class IotAccCreate {
     	crmData = new CrmData("project_c","AxcessIOT");
     	crmDataList.add(crmData);
     	    	
-    	crmData = new CrmData("email1",accInfo.getNameInfo().getEmailAddress());
+    	crmData = new CrmData("email1",getCustEmail(accInfo));
     	crmDataList.add(crmData);
     	
     	crmData = new CrmData("password_c","123");
@@ -48,6 +48,28 @@ public final class IotAccCreate {
     	
     	this.crmData = crmDataList.toArray(new CrmData[crmDataList.size()]);
     }
+    /*
+     * [accountNo = SS000106, 
+login = SS000106,
+ startDate = Tue Sep 26 03: 00: 06 UTC 2017,
+ endDate = Sun Mar 25 07: 00: 00 UTC 2018, 
+ planName = Temperature and Humidity control online - IoT, 
+ planPoid = null, 
+ currency = 840, 
+ active = true, 
+ nameInfo = null, 
+ payInfo = com.brm.service.portal.bean.customer.CustomerPayInfo @ 145b6ca7, 
+ nameInfoList = [
+ CustomerNameInfo[
+ id = 1, address = 113, 
+ country = US, state = CA, 
+ zip = 95014, city = Cupertino, 
+ emailAddress = amit.kumar @ synthesis - systems.com, 
+ 
+ firstName = Test, 
+ lastName = AKS1, salutation = Mr., phones = []], CustomerNameInfo[id = 1, address = 113, country = US, state = CA, zip = 95014, city = Cupertino, emailAddress = amit.kumar @ synthesis - systems.com, firstName = Test, lastName = AKS1, salutation = Mr., phones = []]], iotDeviceMac = null]
+
+     */
     private String getCustName(AccountInfo accountInfo){
     	List<CustomerNameInfo> nameInfoList  = accountInfo.getNameInfoList();
 		for (CustomerNameInfo nameInfo : nameInfoList) {
@@ -57,11 +79,15 @@ public final class IotAccCreate {
 		}
 		return "UnknowName";
     }
-   /* private String getCustEmail(AccountInfo accountInfo){
+   private String getCustEmail(AccountInfo accountInfo){
     	List<CustomerNameInfo> nameInfoList  = accountInfo.getNameInfoList();
 		for (CustomerNameInfo nameInfo : nameInfoList) {
-			if(accountInfo.get)
+			if(nameInfo.getEmailAddress()!=null){
+				return nameInfo.getEmailAddress();
+			}
 		}
-		return "UnknowName";
-    }*/
+		return "UnknowName@gmail.com";
+    }
+   
+   
 }
