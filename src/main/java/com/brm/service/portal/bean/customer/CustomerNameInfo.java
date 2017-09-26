@@ -85,4 +85,11 @@ public class CustomerNameInfo {
 	public void addPhoneInfoList(PhoneInfo phones) {
 		this.phones.add(phones);
 	}
+	@Override
+	public String toString() {
+		return "CustomerNameInfo [id=" + id + ", address=" + address + ", country=" + country + ", state=" + state
+				+ ", zip=" + zip + ", city=" + city + ", emailAddress=" + emailAddress + ", firstName=" + firstName
+				+ ", lastName=" + lastName + ", salutation=" + salutation + ", phones=" + phones + "]";
+	}
+	
 }

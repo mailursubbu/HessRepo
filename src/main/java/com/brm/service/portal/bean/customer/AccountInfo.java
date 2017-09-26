@@ -107,5 +107,12 @@ public class AccountInfo {
 	public void setEndDate(Date endDate) {
 		this.endDate = endDate;
 	}
+	@Override
+	public String toString() {
+		return "AccountInfo [accountNo=" + accountNo + ", login=" + login + ", startDate=" + startDate + ", endDate="
+				+ endDate + ", planName=" + planName + ", planPoid=" + planPoid + ", currency=" + currency + ", active="
+				+ active + ", nameInfo=" + nameInfo + ", payInfo=" + payInfo + ", nameInfoList=" + nameInfoList
+				+ ", iotDeviceMac=" + iotDeviceMac + "]";
+	}
 	
 }

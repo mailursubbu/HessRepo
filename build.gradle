@@ -28,7 +28,7 @@ apply plugin: 'spring-boot'
 
 jar {
 	baseName = 'HessRestAdaptor'
-	version = '1.003'
+	version = '1.004'
 }
 sourceCompatibility = 1.8
 targetCompatibility = 1.8

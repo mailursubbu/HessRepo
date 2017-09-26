@@ -16,8 +16,6 @@ import org.springframework.web.client.RestTemplate;
 
 import com.brm.service.portal.bean.customer.AccountInfo;
 import com.brm.services.iot.model.InvalidRequest;
-import com.brm.services.iot.model.IotAccCreate;
-import com.brm.services.iot.model.IotAccCreateResp;
 import com.brm.services.iot.model.IotDeviceCreate;
 import com.brm.services.iot.model.IotDeviceCreateResp;
 
@@ -50,11 +48,13 @@ public class IotDeviceDao {
             		iotDeviceCreateEndPt, HttpMethod.POST, entity,
             		IotDeviceCreateResp.class);
         	
-            log.error("Response recived from iot account creation is "+response.getBody());
+            log.debug("Response recived from iot account creation is "+response.getBody());
             
             String success = response.getBody().getSuccess();
             if(success==null || !success.equals("yes")){
-            	throw new InvalidRequest("IOT account createion failed");
+            	log.error("IOT account createion failed :"+response.getBody().getMessage());
+            	throw new InvalidRequest("IOT account createion failed :"+
+            	response.getBody().getMessage());
             }
             
         }catch(Exception e){

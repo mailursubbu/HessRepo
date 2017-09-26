@@ -1,5 +1,9 @@
 package com.brm.rest.controllers;
 
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.codec.binary.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -20,13 +24,12 @@ import com.brm.service.portal.bean.customer.AccountInfo;
 import com.brm.service.portal.bean.customer.CustomerInfo;
 import com.brm.services.iot.model.InvalidRequest;
 
-import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.codec.binary.StringUtils;
-
 @RestController
-@RequestMapping("/OBRMRESTService/rest/accounts")
+@RequestMapping("/OBRMRESTService/rest")
 /*@Path("/accounts")*/
 public class CustomerResource {
+    private static final Logger log = LoggerFactory.getLogger(CustomerResource.class);
+
 	@Autowired
 	IotAccountDao iotAccDao;
 	
@@ -36,14 +39,12 @@ public class CustomerResource {
 	@GET
 	@Path("{acctno}")
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })*/
-	@RequestMapping(value = "/{acctno}", method = RequestMethod.GET)
+	@RequestMapping(value = "/accounts/{acctno}", method = RequestMethod.GET)
 	@ResponseBody
 	/*public CustomerInfo getCustomer(@PathParam("acctno") String acctNo,
 					@HeaderParam("authorization") String authString) {*/
 	public CustomerInfo getCustomer(@PathVariable("acctno") String acctNo,
 			@RequestHeader("authorization") String authString) {
-		
-		
 		CustomerDao cust = new CustomerDao();
 		/*if(!isUserAuthenticated(authString)){
 			return cust.getCustomerDetails(acctNo);
@@ -57,12 +58,14 @@ public class CustomerResource {
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })*/
-	@RequestMapping(value = "/", method = RequestMethod.POST)
+	@RequestMapping(value = "/accounts", method = RequestMethod.POST)
 	@ResponseBody
 	public Response createCustomer(@RequestBody AccountInfo account) {
+		log.debug("createCustomer called with payload"+account);
 		if(account.getPlanName().endsWith("IoT")){
 			String iotAccId = iotAccDao.provisionIotAccount(account);
 			String decodedIotAccId = decode(decode(iotAccId));
+			log.debug("IOT account successfully created with decodedIotAccId"+decodedIotAccId);
 			iotDeviceDao.provisionIotDevice(account, decodedIotAccId);
 		}
 		
